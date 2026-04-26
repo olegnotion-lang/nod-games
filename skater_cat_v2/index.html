@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Skater Cat</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#1a1a2e;touch-action:none;user-select:none;-webkit-user-select:none}
+#game-container{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+canvas{display:block}
+</style>
+</head>
+<body>
+<div id="game-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/pixi.js@7/dist/pixi.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/howler@2/dist/howler.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+// ── Constants ──
+const BASE_W = 360, BASE_H = 640;
+const LANE_X = [90, 180, 270]; // left, center, right
+const LANE_COUNT = 3;
+const CAT_Y = 500;
+const TWEEN_SPEED = 0.15; // lerp factor per frame
+const INITIAL_SPEED = 4;
+const MAX_SPEED = 15;
+const SPEED_INCREASE = 0.003; // per frame
+const HITBOX_SHRINK = 0.65;
+const MIN_SPAWN_GAP = 180; // min pixels between spawns
+const COLLECTIBLE_SCORE = 50;
+const OBSTACLE_SPRITES_COUNT = 5;
+const OBSTACLE_W = 128, OBSTACLE_H = 256;
+const COLLECT_W = 128, COLLECT_H = 128;
+const SWIPE_THRESHOLD = 30;
+
+// ── State ──
+let state = "loading"; // loading, start, playing, paused, gameover
+let score = 0, bestScore = 0;
+let speed = INITIAL_SPEED;
+let currentLane = 1; // 0,1,2
+let targetLane = 1;
+let catX = LANE_X[1];
+let distanceTraveled = 0;
+let lastSpawnY = -MIN_SPAWN_GAP;
+let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+let obstacles = [], collectibles = [];
+
+// ── Load best score ──
+try { bestScore = parseInt(localStorage.getItem("skatercat_best")) || 0; } catch(e){}
+
+// ── PixiJS App ──
+const app = new PIXI.Application({
+  width: BASE_W, height: BASE_H,
+  backgroundColor: 0x87CEEB,
+  antialias: true,
+  resolution: 1,
+  autoDensity: true,
+});
+document.getElementById("game-container").appendChild(app.view);
+
+// Responsive scaling
+function resize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  const scaleX = w / BASE_W, scaleY = h / BASE_H;
+  const s = Math.min(scaleX, scaleY);
+  const canvas = app.view;
+  canvas.style.width = (BASE_W * s) + "px";
+  canvas.style.height = (BASE_H * s) + "px";
+}
+window.addEventListener("resize", resize);
+resize();
+
+// ── Audio (placeholder beeps) ──
+function makeBeepUrl(freq, dur) {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)({sampleRate:22050});
+  const sr = ctx.sampleRate;
+  const len = sr * dur;
+  const buf = ctx.createBuffer(1, len, sr);
+  const d = buf.getChannelData(0);
+  for(let i=0;i<len;i++){
+    const t = i/sr;
+    d[i] = Math.sin(2*Math.PI*freq*t) * Math.max(0, 1 - t/dur) * 0.3;
+  }
+  // encode as wav
+  const numCh=1, bps=16;
+  const wavBuf = new ArrayBuffer(44+len*2);
+  const v = new DataView(wavBuf);
+  function ws(o,s){for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))}
+  ws(0,"RIFF"); v.setUint32(4,36+len*2,true); ws(8,"WAVE");
+  ws(12,"fmt "); v.setUint32(16,16,true); v.setUint16(20,1,true);
+  v.setUint16(22,numCh,true); v.setUint32(24,sr,true);
+  v.setUint32(28,sr*numCh*bps/8,true); v.setUint16(32,numCh*bps/8,true);
+  v.setUint16(34,bps,true); ws(36,"data"); v.setUint32(40,len*2,true);
+  for(let i=0;i<len;i++) v.setInt16(44+i*2, d[i]*32767|0, true);
+  ctx.close();
+  const blob = new Blob([wavBuf],{type:"audio/wav"});
+  return URL.createObjectURL(blob);
+}
+
+let sfxCollect, sfxCrash, sfxSpeed;
+try {
+  sfxCollect = new Howl({src:[makeBeepUrl(880,0.15)],volume:0.5});
+  sfxCrash = new Howl({src:[makeBeepUrl(200,0.4)],volume:0.6});
+  sfxSpeed = new Howl({src:[makeBeepUrl(660,0.1)],volume:0.3});
+} catch(e){}
+
+// ── Asset Loading ──
+const loadingContainer = new PIXI.Container();
+app.stage.addChild(loadingContainer);
+
+const loadBg = new PIXI.Graphics();
+loadBg.beginFill(0x1a1a2e).drawRect(0,0,BASE_W,BASE_H).endFill();
+loadingContainer.addChild(loadBg);
+
+const loadTitle = new PIXI.Text("SKATER CAT", {
+  fontFamily:"Arial Black,Arial,sans-serif", fontSize:36, fill:0xFFD700,
+  fontWeight:"bold", align:"center", dropShadow:true, dropShadowDistance:3, dropShadowColor:0x000000
+});
+loadTitle.anchor.set(0.5); loadTitle.position.set(BASE_W/2, 250);
+loadingContainer.addChild(loadTitle);
+
+const barBg = new PIXI.Graphics();
+barBg.beginFill(0x333333).drawRoundedRect(BASE_W/2-100, 320, 200, 20, 10).endFill();
+loadingContainer.addChild(barBg);
+const barFill = new PIXI.Graphics();
+loadingContainer.addChild(barFill);
+
+const loadText = new PIXI.Text("Loading...", {fontFamily:"Arial",fontSize:14,fill:0xcccccc});
+loadText.anchor.set(0.5); loadText.position.set(BASE_W/2, 360);
+loadingContainer.addChild(loadText);
+
+function updateLoadBar(p) {
+  barFill.clear();
+  barFill.beginFill(0xFFD700).drawRoundedRect(BASE_W/2-100, 320, 200*p, 20, 10).endFill();
+  loadText.text = Math.floor(p*100) + "%";
+}
+
+// Load assets
+const assetManifest = {
+  bg_sky: "assets/bg_sky.png",
+  bg_city: "assets/bg_city.png",
+  bg_promenade: "assets/bg_promenade.png",
+  cat: "assets/cat.png",
+  road: "assets/road.png",
+  obstacles: "assets/obstacles.png",
+  collectibles: "assets/collectibles.png",
+};
+
+let textures = {};
+
+async function loadAssets() {
+  const keys = Object.keys(assetManifest);
+  for(let i=0; i<keys.length; i++){
+    const k = keys[i];
+    const tex = await PIXI.Assets.load(assetManifest[k]);
+    textures[k] = tex;
+    updateLoadBar((i+1)/keys.length);
+  }
+  // Create sub-textures for obstacles and collectibles
+  const obsTex = textures.obstacles;
+  textures.obstacleFrames = [];
+  for(let i=0; i<OBSTACLE_SPRITES_COUNT; i++){
+    const rect = new PIXI.Rectangle(i*OBSTACLE_W, 0, OBSTACLE_W, OBSTACLE_H);
+    textures.obstacleFrames.push(new PIXI.Texture(obsTex.baseTexture, rect));
+  }
+  const colTex = textures.collectibles;
+  textures.collectFrames = [];
+  for(let i=0; i<3; i++){
+    const rect = new PIXI.Rectangle(i*COLLECT_W, 0, COLLECT_W, COLLECT_H);
+    textures.collectFrames.push(new PIXI.Texture(colTex.baseTexture, rect));
+  }
+  initGame();
+}
+loadAssets();
+
+// ── Game Layers ──
+let gameContainer, bgLayer, roadLayer, entityLayer, uiLayer;
+let bgSky1, bgSky2, bgCity1, bgCity2, bgProm1, bgProm2;
+let road1, road2;
+let catSprite;
+let scoreText, pauseOverlay, startOverlay, gameOverOverlay;
+
+function initGame() {
+  loadingContainer.visible = false;
+
+  gameContainer = new PIXI.Container();
+  app.stage.addChild(gameContainer);
+
+  bgLayer = new PIXI.Container();
+  roadLayer = new PIXI.Container();
+  entityLayer = new PIXI.Container();
+  uiLayer = new PIXI.Container();
+  gameContainer.addChild(bgLayer, roadLayer, entityLayer, uiLayer);
+
+  // ── Parallax backgrounds (rotated 90° to scroll vertically) ──
+  // These are 1440x360 horizontal strips. We rotate them and tile vertically.
+  // Actually, let's just scale and position them as horizontal bands at the top.
+  // Sky at top, city in middle, promenade at bottom - they scroll left to simulate movement.
+
+  function makeBgPair(tex, y, h) {
+    // Scale the 1440x360 strip to fill width, at given height
+    const s1 = new PIXI.Sprite(tex);
+    const s2 = new PIXI.Sprite(tex);
+    const scaleH = h / tex.height;
+    const scaledW = tex.width * scaleH;
+    s1.height = h; s1.width = scaledW;
+    s2.height = h; s2.width = scaledW;
+    s1.y = y; s2.y = y;
+    s1.x = 0; s2.x = scaledW;
+    bgLayer.addChild(s1, s2);
+    return {s1, s2, w: scaledW, y, h};
+  }
+
+  // Divide top 200px into 3 parallax layers
+  const skyPair = makeBgPair(textures.bg_sky, 0, 120);
+  const cityPair = makeBgPair(textures.bg_city, 100, 140);
+  const promPair = makeBgPair(textures.bg_promenade, 200, 120);
+
+  // Store for scrolling
+  bgSky1 = skyPair; bgCity1 = cityPair; bgProm1 = promPair;
+
+  // ── Road ──
+  // Road is 360x360, tile it vertically to fill from y=280 to y=640
+  const roadH = BASE_H - 280;
+  road1 = new PIXI.TilingSprite(textures.road, BASE_W, roadH + 360);
+  road1.y = 280;
+  road1.tileScale.set(BASE_W / textures.road.width, 1);
+  roadLayer.addChild(road1);
+
+  // ── Cat ──
+  catSprite = new PIXI.Sprite(textures.cat);
+  catSprite.anchor.set(0.5, 0.5);
+  catSprite.x = LANE_X[1];
+  catSprite.y = CAT_Y;
+  catSprite.width = 80; catSprite.height = 80;
+  entityLayer.addChild(catSprite);
+
+  // ── UI: Score ──
+  scoreText = new PIXI.Text("0", {
+    fontFamily:"Arial Black,Arial,sans-serif", fontSize:24, fill:0xFFFFFF,
+    fontWeight:"bold", dropShadow:true, dropShadowDistance:2, dropShadowColor:0x000000, dropShadowAlpha:0.5
+  });
+  scoreText.anchor.set(0.5, 0);
+  scoreText.position.set(BASE_W/2, 10);
+  scoreText.visible = false;
+  uiLayer.addChild(scoreText);
+
+  // ── Start Overlay ──
+  startOverlay = new PIXI.Container();
+  const startDim = new PIXI.Graphics();
+  startDim.beginFill(0x000000, 0.5).drawRect(0,0,BASE_W,BASE_H).endFill();
+  startOverlay.addChild(startDim);
+
+  const titleText = new PIXI.Text("🛹 SKATER CAT", {
+    fontFamily:"Arial Black,Arial,sans-serif", fontSize:32, fill:0xFFD700,
+    fontWeight:"bold", align:"center", dropShadow:true, dropShadowDistance:3, dropShadowColor:0x000000
+  });
+  titleText.anchor.set(0.5); titleText.position.set(BASE_W/2, 220);
+  startOverlay.addChild(titleText);
+
+  const tapText = new PIXI.Text("Tap to Play", {
+    fontFamily:"Arial,sans-serif", fontSize:22, fill:0xFFFFFF, fontWeight:"bold"
+  });
+  tapText.anchor.set(0.5); tapText.position.set(BASE_W/2, 320);
+  startOverlay.addChild(tapText);
+
+  // Pulsing animation for tap text
+  let tapPulse = 0;
+  app.ticker.add(() => {
+    tapPulse += 0.05;
+    tapText.alpha = 0.5 + 0.5 * Math.sin(tapPulse);
+  });
+
+  if(bestScore > 0){
+    const bestText2 = new PIXI.Text("Best: " + bestScore, {
+      fontFamily:"Arial,sans-serif", fontSize:16, fill:0xcccccc
+    });
+    bestText2.anchor.set(0.5); bestText2.position.set(BASE_W/2, 360);
+    startOverlay.addChild(bestText2);
+  }
+
+  const controlHint = new PIXI.Text("Swipe or tap sides to move", {
+    fontFamily:"Arial,sans-serif", fontSize:13, fill:0x999999
+  });
+  controlHint.anchor.set(0.5); controlHint.position.set(BASE_W/2, 400);
+  startOverlay.addChild(controlHint);
+
+  uiLayer.addChild(startOverlay);
+
+  // ── Pause Overlay ──
+  pauseOverlay = new PIXI.Container();
+  pauseOverlay.visible = false;
+  const pauseDim = new PIXI.Graphics();
+  pauseDim.beginFill(0x000000, 0.6).drawRect(0,0,BASE_W,BASE_H).endFill();
+  pauseOverlay.addChild(pauseDim);
+  const pauseText = new PIXI.Text("PAUSED\n\nTap to Resume", {
+    fontFamily:"Arial Black,Arial,sans-serif", fontSize:28, fill:0xFFFFFF,
+    fontWeight:"bold", align:"center"
+  });
+  pauseText.anchor.set(0.5); pauseText.position.set(BASE_W/2, BASE_H/2);
+  pauseOverlay.addChild(pauseText);
+  uiLayer.addChild(pauseOverlay);
+
+  // ── Game Over Overlay ──
+  gameOverOverlay = new PIXI.Container();
+  gameOverOverlay.visible = false;
+  uiLayer.addChild(gameOverOverlay);
+
+  // ── Input ──
+  setupInput();
+
+  // ── Start ──
+  state = "start";
+
+  // ── Game Loop ──
+  app.ticker.add(gameLoop);
+}
+
+// ── Input ──
+function setupInput() {
+  const view = app.view;
+
+  function getGamePos(e) {
+    const rect = view.getBoundingClientRect();
+    const scaleX = BASE_W / rect.width;
+    const scaleY = BASE_H / rect.height;
+    const cx = (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX) || 0);
+    const cy = (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY) || 0);
+    return { x: (cx - rect.left) * scaleX, y: (cy - rect.top) * scaleY };
+  }
+
+  view.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    const p = getGamePos(e.touches[0]);
+    touchStartX = p.x; touchStartY = p.y;
+    touchStartTime = Date.now();
+  }, {passive:false});
+
+  view.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    const touch = e.changedTouches[0];
+    const rect = view.getBoundingClientRect();
+    const scaleX = BASE_W / rect.width;
+    const endX = (touch.clientX - rect.left) * scaleX;
+    const endY = (touch.clientY - rect.top) * (BASE_H / rect.height);
+    const dx = endX - touchStartX;
+    const dy = endY - touchStartY;
+    const dt = Date.now() - touchStartTime;
+
+    handleInput(dx, dy, dt, touchStartX, endX);
+  }, {passive:false});
+
+  // Mouse fallback
+  view.addEventListener("mousedown", (e) => {
+    const p = getGamePos(e);
+    touchStartX = p.x; touchStartY = p.y;
+    touchStartTime = Date.now();
+  });
+  view.addEventListener("mouseup", (e) => {
+    const p = getGamePos(e);
+    const dx = p.x - touchStartX;
+    const dy = p.y - touchStartY;
+    const dt = Date.now() - touchStartTime;
+    handleInput(dx, dy, dt, touchStartX, p.x);
+  });
+
+  // Keyboard
+  document.addEventListener("keydown", (e) => {
+    if(state === "start") { startGame(); return; }
+    if(state === "gameover") { if(e.key === " " || e.key === "Enter") restartGame(); return; }
+    if(state === "paused") { state = "playing"; pauseOverlay.visible = false; return; }
+    if(state === "playing") {
+      if(e.key === "ArrowLeft" || e.key === "a") moveLane(-1);
+      else if(e.key === "ArrowRight" || e.key === "d") moveLane(1);
+      else if(e.key === "Escape" || e.key === "p") { state = "paused"; pauseOverlay.visible = true; }
+    }
+  });
+}
+
+function handleInput(dx, dy, dt, startX, endX) {
+  if(state === "start") { startGame(); return; }
+  if(state === "gameover") {
+    // Check if tap is on restart or share buttons
+    // Handled by PIXI event listeners on those buttons
+    return;
+  }
+  if(state === "paused") { state = "playing"; pauseOverlay.visible = false; return; }
+  if(state !== "playing") return;
+
+  const isSwipe = Math.abs(dx) > SWIPE_THRESHOLD && dt < 500;
+  if(isSwipe) {
+    moveLane(dx > 0 ? 1 : -1);
+  } else if(dt < 300 && Math.abs(dx) < 20 && Math.abs(dy) < 20) {
+    // Tap - check which side
+    if(endX < BASE_W * 0.35) moveLane(-1);
+    else if(endX > BASE_W * 0.65) moveLane(1);
+    else { state = "paused"; pauseOverlay.visible = true; } // tap center = pause
+  }
+}
+
+function moveLane(dir) {
+  targetLane = Math.max(0, Math.min(LANE_COUNT - 1, currentLane + dir));
+  if(targetLane !== currentLane) {
+    currentLane = targetLane;
+  }
+}
+
+function startGame() {
+  state = "playing";
+  score = 0;
+  speed = INITIAL_SPEED;
+  distanceTraveled = 0;
+  currentLane = 1;
+  targetLane = 1;
+  catX = LANE_X[1];
+  catSprite.x = catX;
+  lastSpawnY = -MIN_SPAWN_GAP;
+
+  // Clear entities
+  obstacles.forEach(o => entityLayer.removeChild(o.sprite));
+  collectibles.forEach(c => entityLayer.removeChild(c.sprite));
+  obstacles = [];
+  collectibles = [];
+
+  startOverlay.visible = false;
+  scoreText.visible = true;
+  pauseOverlay.visible = false;
+  gameOverOverlay.visible = false;
+}
+
+function restartGame() {
+  startGame();
+}
+
+// ── Spawning ──
+function trySpawn() {
+  distanceTraveled += speed;
+  if(distanceTraveled - lastSpawnY < MIN_SPAWN_GAP + Math.random() * 100) return;
+  lastSpawnY = distanceTraveled;
+
+  // Decide: obstacle or collectible
+  const isCollectible = Math.random() < 0.3;
+
+  if(isCollectible) {
+    const lane = Math.floor(Math.random() * 3);
+    const frameIdx = Math.floor(Math.random() * 3);
+    const sprite = new PIXI.Sprite(textures.collectFrames[frameIdx]);
+    sprite.anchor.set(0.5, 0.5);
+    sprite.x = LANE_X[lane];
+    sprite.y = -60;
+    sprite.width = 48; sprite.height = 48;
+    entityLayer.addChild(sprite);
+    collectibles.push({sprite, lane, type: frameIdx});
+  } else {
+    // Pick 1-2 lanes to block (never all 3)
+    const blockCount = Math.random() < 0.3 ? 2 : 1;
+    const lanes = [0,1,2];
+    // Shuffle
+    for(let i=lanes.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[lanes[i],lanes[j]]=[lanes[j],lanes[i]];}
+    const blocked = lanes.slice(0, blockCount);
+
+    for(const lane of blocked) {
+      const frameIdx = Math.floor(Math.random() * OBSTACLE_SPRITES_COUNT);
+      const sprite = new PIXI.Sprite(textures.obstacleFrames[frameIdx]);
+      sprite.anchor.set(0.5, 1);
+      sprite.x = LANE_X[lane];
+      sprite.y = -120;
+      sprite.width = 70; sprite.height = 90;
+      entityLayer.addChild(sprite);
+      obstacles.push({sprite, lane});
+    }
+  }
+}
+
+// ── Collision ──
+function checkCollisions() {
+  const catW = 80 * HITBOX_SHRINK;
+  const catH = 80 * HITBOX_SHRINK;
+  const cx = catSprite.x, cy = catSprite.y;
+
+  // Obstacles
+  for(let i = obstacles.length - 1; i >= 0; i--) {
+    const o = obstacles[i];
+    const s = o.sprite;
+    const ow = s.width * HITBOX_SHRINK;
+    const oh = s.height * HITBOX_SHRINK;
+    // AABB - obstacle anchor is (0.5, 1)
+    const ox = s.x, oy = s.y - s.height/2;
+    if(Math.abs(cx - ox) < (catW + ow)/2 && Math.abs(cy - oy) < (catH + oh)/2) {
+      gameOver();
+      return;
+    }
+  }
+
+  // Collectibles
+  for(let i = collectibles.length - 1; i >= 0; i--) {
+    const c = collectibles[i];
+    const s = c.sprite;
+    const ow = s.width * HITBOX_SHRINK;
+    const oh = s.height * HITBOX_SHRINK;
+    if(Math.abs(cx - s.x) < (catW + ow)/2 && Math.abs(cy - s.y) < (catH + oh)/2) {
+      score += COLLECTIBLE_SCORE;
+      entityLayer.removeChild(s);
+      collectibles.splice(i, 1);
+      try { sfxCollect && sfxCollect.play(); } catch(e){}
+      // Flash effect
+      catSprite.tint = 0xFFFF00;
+      setTimeout(() => catSprite.tint = 0xFFFFFF, 100);
+    }
+  }
+}
+
+function gameOver() {
+  state = "gameover";
+  try { sfxCrash && sfxCrash.play(); } catch(e){}
+
+  const finalScore = Math.floor(score);
+  const isNewBest = finalScore > bestScore;
+  if(isNewBest) {
+    bestScore = finalScore;
+    try { localStorage.setItem("skatercat_best", bestScore); } catch(e){}
+  }
+
+  // Build game over overlay
+  gameOverOverlay.removeChildren();
+  gameOverOverlay.visible = true;
+
+  const dim = new PIXI.Graphics();
+  dim.beginFill(0x000000, 0.7).drawRect(0,0,BASE_W,BASE_H).endFill();
+  gameOverOverlay.addChild(dim);
+
+  // Panel
+  const panel = new PIXI.Graphics();
+  panel.beginFill(0x2a2a4a, 0.95).drawRoundedRect(BASE_W/2-130, 180, 260, 300, 20).endFill();
+  panel.lineStyle(2, 0xFFD700);
+  panel.drawRoundedRect(BASE_W/2-130, 180, 260, 300, 20);
+  gameOverOverlay.addChild(panel);
+
+  const goTitle = new PIXI.Text("GAME OVER", {
+    fontFamily:"Arial Black,Arial,sans-serif", fontSize:28, fill:0xFF4444, fontWeight:"bold"
+  });
+  goTitle.anchor.set(0.5); goTitle.position.set(BASE_W/2, 220);
+  gameOverOverlay.addChild(goTitle);
+
+  const scoreLabel = new PIXI.Text("Score", {fontFamily:"Arial",fontSize:14,fill:0xaaaaaa});
+  scoreLabel.anchor.set(0.5); scoreLabel.position.set(BASE_W/2, 260);
+  gameOverOverlay.addChild(scoreLabel);
+
+  const scoreFinal = new PIXI.Text(finalScore.toString(), {
+    fontFamily:"Arial Black,Arial,sans-serif", fontSize:40, fill:0xFFD700, fontWeight:"bold"
+  });
+  scoreFinal.anchor.set(0.5); scoreFinal.position.set(BASE_W/2, 295);
+  gameOverOverlay.addChild(scoreFinal);
+
+  const bestLabel = new PIXI.Text((isNewBest ? "🎉 NEW BEST! " : "Best: ") + bestScore, {
+    fontFamily:"Arial",fontSize:16,fill:isNewBest?0xFFD700:0xcccccc
+  });
+  bestLabel.anchor.set(0.5); bestLabel.position.set(BASE_W/2, 335);
+  gameOverOverlay.addChild(bestLabel);
+
+  // Restart button
+  const restartBtn = new PIXI.Container();
+  restartBtn.position.set(BASE_W/2, 390);
+  const restartBg = new PIXI.Graphics();
+  restartBg.beginFill(0x44AA44).drawRoundedRect(-80, -20, 160, 40, 12).endFill();
+  restartBtn.addChild(restartBg);
+  const restartTxt = new PIXI.Text("▶ Play Again", {fontFamily:"Arial",fontSize:16,fill:0xFFFFFF,fontWeight:"bold"});
+  restartTxt.anchor.set(0.5);
+  restartBtn.addChild(restartTxt);
+  restartBtn.eventMode = "static"; restartBtn.cursor = "pointer";
+  restartBtn.on("pointerdown", () => restartGame());
+  gameOverOverlay.addChild(restartBtn);
+
+  // Share button
+  const shareBtn = new PIXI.Container();
+  shareBtn.position.set(BASE_W/2, 445);
+  const shareBg = new PIXI.Graphics();
+  shareBg.beginFill(0x3388DD).drawRoundedRect(-80, -20, 160, 40, 12).endFill();
+  shareBtn.addChild(shareBg);
+  const shareTxt = new PIXI.Text("📤 Share", {fontFamily:"Arial",fontSize:16,fill:0xFFFFFF,fontWeight:"bold"});
+  shareTxt.anchor.set(0.5);
+  shareBtn.addChild(shareTxt);
+  shareBtn.eventMode = "static"; shareBtn.cursor = "pointer";
+  shareBtn.on("pointerdown", () => shareScore(finalScore));
+  gameOverOverlay.addChild(shareBtn);
+}
+
+function shareScore(s) {
+  const text = `🛹 Skater Cat: ${s} points! Can you beat me?`;
+  if(navigator.share) {
+    navigator.share({title:"Skater Cat", text}).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(text).then(()=>{
+      // Brief feedback
+    }).catch(()=>{});
+  }
+}
+
+// ── Game Loop ──
+let wobbleTime = 0;
+
+function gameLoop(delta) {
+  if(state !== "playing") return;
+
+  // Speed increase
+  speed = Math.min(MAX_SPEED, speed + SPEED_INCREASE * delta);
+
+  // Score
+  score += speed * 0.1 * delta;
+  scoreText.text = Math.floor(score).toString();
+
+  // Speed milestone beep every 2 speed units
+  if(Math.floor(speed) > Math.floor(speed - SPEED_INCREASE * delta) && Math.floor(speed) % 2 === 0) {
+    try { sfxSpeed && sfxSpeed.play(); } catch(e){}
+  }
+
+  // Cat movement (smooth tween)
+  const targetX = LANE_X[currentLane];
+  catX += (targetX - catX) * TWEEN_SPEED * delta;
+  catSprite.x = catX;
+
+  // Cat flip: mirror when in left lane
+  catSprite.scale.x = currentLane === 0 ? -Math.abs(catSprite.scale.x) : Math.abs(catSprite.scale.x);
+
+  // Cat wobble
+  wobbleTime += delta * 0.1;
+  catSprite.rotation = Math.sin(wobbleTime * 5) * 0.06;
+
+  // Road scroll
+  road1.tilePosition.y += speed * delta;
+
+  // Parallax scroll (horizontal)
+  function scrollBg(pair, spd) {
+    pair.s1.x -= spd * delta;
+    pair.s2.x -= spd * delta;
+    if(pair.s1.x + pair.w <= 0) pair.s1.x = pair.s2.x + pair.w;
+    if(pair.s2.x + pair.w <= 0) pair.s2.x = pair.s1.x + pair.w;
+  }
+  scrollBg(bgSky1, speed * 0.2);
+  scrollBg(bgCity1, speed * 0.5);
+  scrollBg(bgProm1, speed * 0.8);
+
+  // Spawn
+  trySpawn();
+
+  // Move entities
+  for(let i = obstacles.length - 1; i >= 0; i--) {
+    obstacles[i].sprite.y += speed * delta;
+    if(obstacles[i].sprite.y > BASE_H + 150) {
+      entityLayer.removeChild(obstacles[i].sprite);
+      obstacles.splice(i, 1);
+    }
+  }
+  for(let i = collectibles.length - 1; i >= 0; i--) {
+    collectibles[i].sprite.y += speed * delta;
+    // Collectible bobbing
+    collectibles[i].sprite.rotation = Math.sin(wobbleTime * 3 + i) * 0.2;
+    if(collectibles[i].sprite.y > BASE_H + 80) {
+      entityLayer.removeChild(collectibles[i].sprite);
+      collectibles.splice(i, 1);
+    }
+  }
+
+  // Collisions
+  checkCollisions();
+}
+
+})();
+</script>
+</body>
+</html>
