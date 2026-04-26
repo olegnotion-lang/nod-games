@@ -40,7 +40,7 @@ const COL={
 // Game state
 let state='menu'; // menu, play, over
 let score=0, bestScore=parseInt(localStorage.getItem('skaterCatBest')||'0');
-let speed=3, baseSpeed=3, maxSpeed=12;
+let speed=6, baseSpeed=6, maxSpeed=20;
 let playerX=0.5, playerTargetX=0.5; // 0-1 normalized
 let tilt=0, touchStartX=null, touchDragX=null;
 let gameTime=0, totalDist=0;
@@ -666,7 +666,7 @@ function update(dt){
   totalDist+=speed*dt*10;
 
   // Increase speed
-  speed=Math.min(maxSpeed,baseSpeed+gameTime*0.08);
+  speed=Math.min(maxSpeed,baseSpeed+gameTime*0.15);
 
   // Player movement
   let moveSpeed=0.03;
