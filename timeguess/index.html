@@ -3,272 +3,356 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>TimeGuess — Mockup</title>
+<title>TimeGuess</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: #0f0f1a; font-family: 'Georgia', serif; color: #fff; }
-
-/* NAVIGATION between screens */
-#nav { position: fixed; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.8); display: flex; gap: 8px; padding: 8px; z-index: 999; flex-wrap: wrap; }
-#nav button { background: #333; color: #aaa; border: 1px solid #555; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
+#nav { position: fixed; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.85); display: flex; gap: 6px; padding: 8px; z-index: 999; flex-wrap: wrap; }
+#nav button { background: #333; color: #aaa; border: 1px solid #555; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 11px; }
 #nav button.active { background: #FFD700; color: #000; }
+.screen { display: none; min-height: 100vh; flex-direction: column; }
+.screen.active { display: flex; }
 
-.screen { display: none; min-height: 100vh; }
-.screen.active { display: flex; flex-direction: column; }
+/* ===== START ===== */
+#screen-start { background: #0f0f1a; align-items: center; }
+.hero { position: relative; width: 100%; height: 300px; flex-shrink: 0; }
+.hero-bg { width: 100%; height: 100%; background: linear-gradient(135deg, #1a0828 0%, #0d1a3a 40%, #281408 70%, #0a2010 100%); display: flex; align-items: center; justify-content: center; }
+.hero-collage { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 3px; width: 100%; height: 100%; }
+.hero-cell { display: flex; align-items: center; justify-content: center; font-size: 40px; opacity: 0.6; }
+.hero-cell:nth-child(1) { background: rgba(139,90,43,0.3); }
+.hero-cell:nth-child(2) { background: rgba(43,90,139,0.3); }
+.hero-cell:nth-child(3) { background: rgba(90,139,43,0.3); }
+.hero-cell:nth-child(4) { background: rgba(139,43,90,0.3); }
+.hero-cell:nth-child(5) { background: rgba(43,139,90,0.3); }
+.hero-cell:nth-child(6) { background: rgba(90,43,139,0.3); }
+.hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(15,15,26,0.3) 0%, rgba(15,15,26,0.95) 100%); }
+.hero-badge { position: absolute; top: 44px; left: 16px; background: rgba(255,215,0,0.12); border: 1px solid rgba(255,215,0,0.35); border-radius: 20px; padding: 4px 12px; font-size: 11px; color: #FFD700; letter-spacing: 2px; text-transform: uppercase; font-family: Arial, sans-serif; }
+.hero-title-block { position: absolute; bottom: 20px; left: 0; right: 0; text-align: center; }
+.hero-title { font-size: 44px; color: #FFD700; letter-spacing: 4px; text-shadow: 0 0 40px rgba(255,215,0,0.7), 0 2px 8px rgba(0,0,0,0.8); font-weight: bold; }
+.hero-sub { font-size: 13px; color: #aaa; letter-spacing: 2px; margin-top: 4px; font-family: Arial, sans-serif; text-transform: uppercase; }
 
-/* ===== SCREEN 1: START ===== */
-#screen-start {
-  background: linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 50%, #0f1a2e 100%);
-  justify-content: center; align-items: center; text-align: center; padding: 40px 20px;
-}
-.start-logo { font-size: 64px; margin-bottom: 16px; }
-.start-title { font-size: 48px; color: #FFD700; text-shadow: 0 0 30px rgba(255,215,0,0.5); margin-bottom: 8px; letter-spacing: 2px; }
-.start-subtitle { font-size: 18px; color: #aaa; margin-bottom: 48px; font-style: italic; }
-.start-description { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; max-width: 400px; margin: 0 auto 40px; }
-.start-description p { color: #ccc; font-size: 15px; line-height: 1.8; }
-.start-description span { color: #FFD700; }
-.btn-primary { background: linear-gradient(135deg, #FFD700, #FF6B35); color: #000; border: none; border-radius: 50px; padding: 18px 60px; font-size: 22px; font-weight: bold; cursor: pointer; letter-spacing: 1px; box-shadow: 0 8px 30px rgba(255,215,0,0.4); }
-.rounds-select { margin-bottom: 32px; color: #aaa; font-size: 14px; }
-.rounds-select select { background: #1a1a2e; color: #fff; border: 1px solid #444; border-radius: 8px; padding: 6px 12px; font-size: 14px; margin-left: 8px; }
+.start-body { padding: 20px 20px 40px; width: 100%; max-width: 420px; }
+.mechanic-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+.mechanic-item { display: flex; align-items: flex-start; gap: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 14px; }
+.mechanic-num { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,215,0,0.15); border: 1px solid rgba(255,215,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 13px; color: #FFD700; font-weight: bold; flex-shrink: 0; font-family: Arial; }
+.mechanic-text { flex: 1; }
+.mechanic-text strong { display: block; font-size: 14px; color: #fff; margin-bottom: 3px; font-family: Arial; }
+.mechanic-text span { font-size: 12px; color: #888; font-family: Arial; line-height: 1.4; }
 
-/* ===== SCREEN 2: ROUND (gameplay) ===== */
+.btn-start { width: 100%; background: linear-gradient(135deg, #FFD700 0%, #FF8C00 100%); color: #000; border: none; border-radius: 14px; padding: 18px; font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 6px 24px rgba(255,200,0,0.4); font-family: Arial; letter-spacing: 1px; }
+.rounds-hint { text-align: center; color: #444; font-size: 12px; margin-top: 12px; font-family: Arial; }
+
+/* ===== ROUND ===== */
 #screen-round { background: #0f0f1a; }
-.round-header { background: rgba(0,0,0,0.6); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
-.round-badge { background: #FFD700; color: #000; border-radius: 20px; padding: 4px 14px; font-size: 13px; font-weight: bold; }
-.round-timer { font-size: 24px; color: #FF6B35; font-weight: bold; font-family: monospace; }
-.round-score { color: #aaa; font-size: 14px; }
-.round-score span { color: #FFD700; font-weight: bold; }
+.round-header { padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1a1a2a; margin-top: 36px; }
+.round-pill { background: rgba(255,215,0,0.12); border: 1px solid rgba(255,215,0,0.3); border-radius: 20px; padding: 4px 12px; font-size: 12px; color: #FFD700; font-family: Arial; }
+.round-dots { display: flex; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: #222; border: 1px solid #333; }
+.dot.done { background: #FFD700; border-color: #FFD700; }
+.dot.current { background: transparent; border: 2px solid #FFD700; }
+.round-pts { color: #888; font-size: 12px; font-family: Arial; }
+.round-pts span { color: #FFD700; font-weight: bold; }
 
-.image-area { position: relative; width: 100%; height: 300px; overflow: hidden; }
-.image-area img { width: 100%; height: 100%; object-fit: cover; }
-.image-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 20px; }
-.image-hint { color: #ccc; font-size: 13px; font-style: italic; }
+.scene-img { width: 100%; height: 260px; object-fit: cover; display: block; }
+.scene-placeholder { width: 100%; height: 260px; background: linear-gradient(135deg, #1a1a0a, #0a0a1a, #1a0a0a); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; }
+.scene-placeholder .big-icon { font-size: 60px; opacity: 0.5; }
+.scene-placeholder .scene-label { color: #555; font-size: 12px; font-family: Arial; }
 
-.guess-panel { padding: 20px; flex: 1; }
-.guess-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-.guess-title { font-size: 18px; color: #fff; margin-bottom: 20px; }
+.guess-area { padding: 16px 16px 24px; }
+.section-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; font-family: Arial; }
 
-/* Region picker */
-.region-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 24px; }
-.region-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 6px; text-align: center; cursor: pointer; transition: all 0.2s; font-size: 12px; color: #ccc; }
-.region-btn:hover, .region-btn.selected { background: rgba(255,215,0,0.15); border-color: #FFD700; color: #FFD700; }
-.region-btn .flag { font-size: 20px; display: block; margin-bottom: 4px; }
+/* Region buttons */
+.region-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+.region-btn { background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.09); border-radius: 10px; padding: 10px 4px; text-align: center; cursor: pointer; font-size: 11px; color: #aaa; font-family: Arial; transition: all 0.15s; }
+.region-btn .rflag { font-size: 22px; display: block; margin-bottom: 4px; }
+.region-btn.selected { background: rgba(255,215,0,0.12); border-color: #FFD700; color: #FFD700; }
 
-/* Year slider */
-.year-area { margin-bottom: 24px; }
-.year-display { text-align: center; font-size: 36px; color: #FFD700; font-weight: bold; margin-bottom: 8px; font-family: monospace; }
-.year-range { display: flex; justify-content: space-between; font-size: 11px; color: #666; margin-bottom: 6px; }
-input[type=range] { width: 100%; accent-color: #FFD700; height: 6px; }
+/* 4 answer options (Who Wants to be a Millionaire style) */
+.answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.answer-btn { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.09); border-radius: 12px; padding: 14px 12px; cursor: pointer; font-family: Arial; transition: all 0.15s; text-align: left; }
+.answer-btn .aletter { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; color: #888; flex-shrink: 0; }
+.answer-btn .atext { font-size: 13px; color: #ccc; line-height: 1.3; }
+.answer-btn.selected { background: rgba(255,215,0,0.1); border-color: #FFD700; }
+.answer-btn.selected .aletter { background: #FFD700; color: #000; }
+.answer-btn.selected .atext { color: #fff; }
+.answer-btn.correct { background: rgba(76,175,80,0.15); border-color: #4CAF50; }
+.answer-btn.correct .aletter { background: #4CAF50; color: #fff; }
+.answer-btn.wrong { background: rgba(255,82,82,0.1); border-color: #FF5252; opacity: 0.6; }
 
-.btn-submit { width: 100%; background: linear-gradient(135deg, #FFD700, #FF6B35); color: #000; border: none; border-radius: 12px; padding: 16px; font-size: 18px; font-weight: bold; cursor: pointer; }
-.btn-submit:disabled { background: #333; color: #666; cursor: not-allowed; }
+.btn-submit { width: 100%; background: linear-gradient(135deg, #FFD700, #FF8C00); color: #000; border: none; border-radius: 12px; padding: 15px; font-size: 17px; font-weight: bold; cursor: pointer; font-family: Arial; }
+.btn-submit:disabled { background: #1a1a2a; color: #444; cursor: not-allowed; }
 
-/* ===== SCREEN 3: ROUND RESULT ===== */
-#screen-result { background: #0f0f1a; justify-content: flex-start; padding: 0; }
-.result-header { padding: 20px; background: rgba(0,0,0,0.4); border-bottom: 1px solid #222; text-align: center; }
-.result-round { color: #888; font-size: 13px; margin-bottom: 4px; }
-.result-verdict { font-size: 28px; font-weight: bold; }
-.result-verdict.great { color: #4CAF50; }
-.result-verdict.ok { color: #FFD700; }
-.result-verdict.miss { color: #FF5252; }
+/* ===== RESULT ===== */
+#screen-result { background: #0f0f1a; }
+.result-top { margin-top: 36px; }
+.result-verdict-bar { padding: 16px 20px; text-align: center; border-bottom: 1px solid #1a1a2a; }
+.verdict-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 2px; font-family: Arial; margin-bottom: 4px; }
+.verdict-text { font-size: 26px; font-weight: bold; }
+.verdict-great { color: #4CAF50; }
+.verdict-ok { color: #FFD700; }
+.verdict-miss { color: #FF5252; }
 
-.result-image { width: 100%; height: 200px; object-fit: cover; }
-.result-answer { padding: 20px; }
-.answer-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1a1a1a; }
-.answer-label { color: #888; font-size: 13px; }
-.answer-value { font-size: 15px; }
-.answer-correct { color: #4CAF50; }
-.answer-wrong { color: #FF5252; text-decoration: line-through; }
-.answer-actual { color: #FFD700; margin-left: 8px; }
+.result-scene { width: 100%; height: 160px; background: linear-gradient(135deg, #1a1a0a, #0a0a1a); display: flex; align-items: center; justify-content: center; font-size: 60px; }
 
-.result-points { text-align: center; padding: 20px; background: rgba(255,215,0,0.05); border-radius: 12px; margin: 16px 20px; }
-.result-points .pts { font-size: 52px; color: #FFD700; font-weight: bold; }
-.result-points .pts-label { color: #888; font-size: 14px; }
-.result-breakdown { display: flex; justify-content: center; gap: 24px; margin-top: 8px; }
-.breakdown-item { text-align: center; }
-.breakdown-item .val { color: #ccc; font-size: 18px; font-weight: bold; }
-.breakdown-item .lbl { color: #666; font-size: 11px; }
+.result-facts { padding: 16px 20px; }
+.fact-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid #141420; }
+.fact-key { color: #666; font-size: 12px; font-family: Arial; }
+.fact-val { font-size: 13px; font-family: Arial; text-align: right; }
+.val-wrong { color: #FF5252; text-decoration: line-through; font-size: 12px; }
+.val-arrow { color: #555; margin: 0 6px; }
+.val-right { color: #FFD700; }
+.val-good { color: #4CAF50; }
 
-.result-actions { padding: 20px; display: flex; gap: 12px; }
-.btn-next { flex: 1; background: #FFD700; color: #000; border: none; border-radius: 12px; padding: 16px; font-size: 16px; font-weight: bold; cursor: pointer; }
-.btn-skip { background: transparent; color: #666; border: 1px solid #333; border-radius: 12px; padding: 16px 20px; font-size: 14px; cursor: pointer; }
+/* Answers revealed */
+.answers-reveal { padding: 0 20px 4px; }
+.reveal-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 2px; font-family: Arial; margin-bottom: 8px; }
+.answers-grid-sm { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ans-item { display: flex; align-items: center; gap: 8px; border-radius: 10px; padding: 10px; border: 1.5px solid transparent; }
+.ans-item .aletter { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; flex-shrink: 0; font-family: Arial; }
+.ans-item .atext { font-size: 12px; font-family: Arial; color: #888; }
+.ans-correct { background: rgba(76,175,80,0.1); border-color: #4CAF50; }
+.ans-correct .aletter { background: #4CAF50; color: #fff; }
+.ans-correct .atext { color: #4CAF50; }
+.ans-wrong-pick { background: rgba(255,82,82,0.08); border-color: rgba(255,82,82,0.3); }
+.ans-wrong-pick .aletter { background: rgba(255,82,82,0.3); color: #FF5252; }
+.ans-neutral { background: rgba(255,255,255,0.03); border-color: #1a1a2a; }
+.ans-neutral .aletter { background: #1a1a2a; color: #555; }
 
-/* ===== SCREEN 4: FINAL SCORE ===== */
-#screen-final { background: linear-gradient(135deg, #0f0f1a, #1a1a3e); justify-content: flex-start; padding: 40px 20px; align-items: center; text-align: center; }
-.final-trophy { font-size: 80px; margin-bottom: 16px; }
-.final-title { font-size: 32px; color: #FFD700; margin-bottom: 8px; }
-.final-subtitle { color: #888; font-size: 15px; margin-bottom: 32px; }
+.result-score-box { margin: 12px 20px; background: rgba(255,215,0,0.05); border: 1px solid rgba(255,215,0,0.15); border-radius: 14px; padding: 16px; text-align: center; }
+.rscore-num { font-size: 48px; color: #FFD700; font-weight: bold; line-height: 1; }
+.rscore-label { color: #666; font-size: 12px; font-family: Arial; margin-bottom: 8px; }
+.rscore-breakdown { display: flex; justify-content: center; gap: 20px; }
+.rb-item .rb-val { font-size: 16px; font-weight: bold; font-family: Arial; }
+.rb-item .rb-lbl { font-size: 10px; color: #555; font-family: Arial; }
 
-.final-score-box { background: rgba(255,215,0,0.1); border: 2px solid rgba(255,215,0,0.3); border-radius: 20px; padding: 32px; width: 100%; max-width: 360px; margin-bottom: 24px; }
-.final-score-num { font-size: 72px; color: #FFD700; font-weight: bold; line-height: 1; }
-.final-score-max { color: #888; font-size: 16px; margin-bottom: 16px; }
-.final-stars { font-size: 36px; margin-bottom: 8px; }
+.result-btn-area { padding: 12px 20px 32px; }
+.btn-next { width: 100%; background: #FFD700; color: #000; border: none; border-radius: 12px; padding: 15px; font-size: 16px; font-weight: bold; cursor: pointer; font-family: Arial; }
 
-.final-breakdown { width: 100%; max-width: 360px; margin-bottom: 32px; }
-.final-round-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1a1a1a; font-size: 14px; }
-.final-round-row .rnd { color: #888; }
-.final-round-row .pts { color: #FFD700; font-weight: bold; }
-
-.final-actions { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 360px; }
-.btn-playagain { background: linear-gradient(135deg, #FFD700, #FF6B35); color: #000; border: none; border-radius: 12px; padding: 16px; font-size: 18px; font-weight: bold; cursor: pointer; }
-.btn-share { background: transparent; color: #ccc; border: 1px solid #444; border-radius: 12px; padding: 14px; font-size: 15px; cursor: pointer; }
+/* ===== FINAL ===== */
+#screen-final { background: linear-gradient(180deg, #0f0f1a 0%, #0f1a0f 100%); align-items: center; padding: 60px 20px 40px; text-align: center; }
+.final-icon { font-size: 72px; margin-bottom: 12px; }
+.final-title { font-size: 30px; color: #FFD700; margin-bottom: 4px; }
+.final-sub { color: #666; font-size: 13px; font-family: Arial; margin-bottom: 24px; }
+.final-scorebox { background: rgba(255,215,0,0.07); border: 1.5px solid rgba(255,215,0,0.25); border-radius: 18px; padding: 24px; width: 100%; max-width: 320px; margin-bottom: 20px; }
+.fs-num { font-size: 64px; color: #FFD700; font-weight: bold; line-height: 1; }
+.fs-of { color: #555; font-size: 14px; font-family: Arial; margin-bottom: 10px; }
+.fs-stars { font-size: 30px; }
+.final-list { width: 100%; max-width: 320px; margin-bottom: 24px; }
+.fl-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #141420; }
+.fl-name { color: #777; font-size: 13px; font-family: Arial; text-align: left; }
+.fl-pts { color: #FFD700; font-size: 13px; font-weight: bold; font-family: Arial; }
+.final-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; }
+.btn-again { background: linear-gradient(135deg, #FFD700, #FF8C00); color: #000; border: none; border-radius: 12px; padding: 15px; font-size: 17px; font-weight: bold; cursor: pointer; font-family: Arial; }
+.btn-share { background: transparent; color: #888; border: 1px solid #2a2a3a; border-radius: 12px; padding: 13px; font-size: 14px; cursor: pointer; font-family: Arial; }
 </style>
 </head>
 <body>
 
-<!-- Navigation -->
 <div id="nav">
-  <button class="active" onclick="show('start')">① Start</button>
-  <button onclick="show('round')">② Round (game)</button>
-  <button onclick="show('result')">③ Round Result</button>
-  <button onclick="show('final')">④ Final Score</button>
+  <button class="active" onclick="go('start')">① Старт</button>
+  <button onclick="go('round')">② Раунд</button>
+  <button onclick="go('result')">③ Результат</button>
+  <button onclick="go('final')">④ Финал</button>
 </div>
 
-<!-- SCREEN 1: START -->
-<div class="screen active" id="screen-start" style="padding-top: 50px">
-  <div class="start-logo">🗺️</div>
-  <div class="start-title">TimeGuess</div>
-  <div class="start-subtitle">Where & When in History?</div>
-  <div class="start-description">
-    <p>Тебе показывают <span>AI-сгенерированную сцену</span> из истории.<br><br>
-    Угадай <span>регион</span> и <span>год</span>.<br><br>
-    Чем точнее — тем больше очков.</p>
+<!-- ① СТАРТ -->
+<div class="screen active" id="screen-start">
+  <div class="hero">
+    <div class="hero-bg">
+      <div class="hero-collage">
+        <div class="hero-cell">🏛️</div>
+        <div class="hero-cell">⛩️</div>
+        <div class="hero-cell">🕌</div>
+        <div class="hero-cell">🗿</div>
+        <div class="hero-cell">🏰</div>
+        <div class="hero-cell">🌋</div>
+      </div>
+    </div>
+    <div class="hero-overlay"></div>
+    <div class="hero-badge">AI · History · Quiz</div>
+    <div class="hero-title-block">
+      <div class="hero-title">TIMEGUESS</div>
+      <div class="hero-sub">Where & When in History?</div>
+    </div>
   </div>
-  <div class="rounds-select">
-    Раундов:
-    <select><option>5</option><option>10</option></select>
+
+  <div class="start-body">
+    <div class="mechanic-list">
+      <div class="mechanic-item">
+        <div class="mechanic-num">1</div>
+        <div class="mechanic-text">
+          <strong>Смотри на сцену</strong>
+          <span>AI-сгенерированная историческая картинка</span>
+        </div>
+      </div>
+      <div class="mechanic-item">
+        <div class="mechanic-num">2</div>
+        <div class="mechanic-text">
+          <strong>Выбери регион</strong>
+          <span>Европа, Азия, Ближний Восток…</span>
+        </div>
+      </div>
+      <div class="mechanic-item">
+        <div class="mechanic-num">3</div>
+        <div class="mechanic-text">
+          <strong>Угадай год — 4 варианта</strong>
+          <span>Как в "Кто хочет стать миллионером"</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn-start">▶ Начать игру · 5 раундов</button>
+    <div class="rounds-hint">Бесплатно · Без регистрации · 5 мин</div>
   </div>
-  <button class="btn-primary">▶ Начать</button>
 </div>
 
-<!-- SCREEN 2: ROUND -->
-<div class="screen" id="screen-round" style="padding-top: 44px">
+<!-- ② РАУНД -->
+<div class="screen" id="screen-round">
   <div class="round-header">
-    <div class="round-badge">Раунд 2 / 5</div>
-    <div class="round-timer">0:45</div>
-    <div class="round-score">Очки: <span>1200</span></div>
+    <div class="round-pill">Раунд 2 / 5</div>
+    <div class="round-dots">
+      <div class="dot done"></div>
+      <div class="dot current"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+    <div class="round-pts">Очки: <span>900</span></div>
   </div>
 
-  <div class="image-area">
-    <!-- Placeholder image -->
-    <div style="width:100%;height:300px;background:linear-gradient(135deg,#2a1a0e,#4a3020,#1a0a05);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px">
-      <div style="font-size:48px">🏛️</div>
-      <div style="color:#888;font-size:13px">AI-generated historical scene</div>
-    </div>
-    <div class="image-overlay">
-      <div class="image-hint">Что это за место и время?</div>
-    </div>
+  <div class="scene-placeholder">
+    <div class="big-icon">🏛️</div>
+    <div class="scene-label">AI-generated historical scene</div>
   </div>
 
-  <div class="guess-panel">
-    <div class="guess-label">Шаг 1 — Регион</div>
+  <div class="guess-area">
+    <div class="section-label">Шаг 1 — Регион</div>
     <div class="region-grid">
-      <div class="region-btn selected"><span class="flag">🌍</span>Европа</div>
-      <div class="region-btn"><span class="flag">🌎</span>Америка</div>
-      <div class="region-btn"><span class="flag">🌏</span>Азия</div>
-      <div class="region-btn"><span class="flag">🕌</span>Ближний Восток</div>
-      <div class="region-btn"><span class="flag">🌴</span>Африка</div>
-      <div class="region-btn"><span class="flag">🗿</span>Океания</div>
+      <div class="region-btn selected"><span class="rflag">🌍</span>Европа</div>
+      <div class="region-btn"><span class="rflag">🌎</span>Америка</div>
+      <div class="region-btn"><span class="rflag">🌏</span>Азия</div>
+      <div class="region-btn"><span class="rflag">🕌</span>Бл. Восток</div>
+      <div class="region-btn"><span class="rflag">🌴</span>Африка</div>
+      <div class="region-btn"><span class="rflag">🗿</span>Океания</div>
     </div>
 
-    <div class="guess-label">Шаг 2 — Год</div>
-    <div class="year-area">
-      <div class="year-display">1850</div>
-      <div class="year-range"><span>−3000</span><span>2000</span></div>
-      <input type="range" min="-3000" max="2000" value="1850">
+    <div class="section-label">Шаг 2 — Когда это было?</div>
+    <div class="answers-grid">
+      <div class="answer-btn">
+        <div class="aletter">A</div>
+        <div class="atext">около 44 до н.э.</div>
+      </div>
+      <div class="answer-btn selected">
+        <div class="aletter">B</div>
+        <div class="atext">около 117 н.э.</div>
+      </div>
+      <div class="answer-btn">
+        <div class="aletter">C</div>
+        <div class="atext">около 380 н.э.</div>
+      </div>
+      <div class="answer-btn">
+        <div class="aletter">D</div>
+        <div class="atext">около 800 н.э.</div>
+      </div>
     </div>
 
     <button class="btn-submit">Отправить ответ →</button>
   </div>
 </div>
 
-<!-- SCREEN 3: ROUND RESULT -->
+<!-- ③ РЕЗУЛЬТАТ -->
 <div class="screen" id="screen-result">
-  <div class="result-header" style="padding-top:54px">
-    <div class="result-round">Раунд 2 из 5</div>
-    <div class="result-verdict ok">Неплохо! 👍</div>
-  </div>
-
-  <div style="width:100%;height:180px;background:linear-gradient(135deg,#2a1a0e,#4a3020);display:flex;align-items:center;justify-content:center">
-    <div style="font-size:64px">🏛️</div>
-  </div>
-
-  <div class="result-answer">
-    <div class="answer-row">
-      <div class="answer-label">Регион</div>
-      <div class="answer-value">
-        <span class="answer-wrong">Азия</span>
-        <span class="answer-actual">→ Европа ✓</span>
-      </div>
-    </div>
-    <div class="answer-row">
-      <div class="answer-label">Твой год</div>
-      <div class="answer-value answer-correct">1850</div>
-    </div>
-    <div class="answer-row">
-      <div class="answer-label">Реальный год</div>
-      <div class="answer-value answer-correct">1847 (+3 года)</div>
-    </div>
-    <div class="answer-row">
-      <div class="answer-label">Место</div>
-      <div class="answer-value" style="color:#FFD700">Париж, Франция</div>
+  <div class="result-top">
+    <div class="result-verdict-bar">
+      <div class="verdict-label">Результат раунда 2</div>
+      <div class="verdict-text verdict-ok">Почти! 🎯</div>
     </div>
   </div>
 
-  <div class="result-points">
-    <div class="pts">850</div>
-    <div class="pts-label">очков за раунд</div>
-    <div class="result-breakdown">
-      <div class="breakdown-item"><div class="val" style="color:#FF5252">0</div><div class="lbl">регион</div></div>
-      <div class="breakdown-item"><div class="val" style="color:#4CAF50">+850</div><div class="lbl">год (±3)</div></div>
+  <div class="result-scene">🏛️</div>
+
+  <div class="result-facts">
+    <div class="fact-row">
+      <div class="fact-key">Регион</div>
+      <div class="fact-val"><span class="val-wrong">Азия</span><span class="val-arrow">→</span><span class="val-right">Европа ✓</span></div>
+    </div>
+    <div class="fact-row">
+      <div class="fact-key">Место</div>
+      <div class="fact-val val-right">Рим, Италия</div>
+    </div>
+    <div class="fact-row">
+      <div class="fact-key">Правильный ответ</div>
+      <div class="fact-val val-good">B — около 117 н.э. ✓</div>
     </div>
   </div>
 
-  <div class="result-actions">
+  <div class="answers-reveal">
+    <div class="reveal-label">Варианты ответа</div>
+    <div class="answers-grid-sm">
+      <div class="ans-item ans-neutral"><div class="aletter">A</div><div class="atext">44 до н.э.</div></div>
+      <div class="ans-item ans-correct"><div class="aletter">B</div><div class="atext">117 н.э. ✓</div></div>
+      <div class="ans-item ans-neutral"><div class="aletter">C</div><div class="atext">380 н.э.</div></div>
+      <div class="ans-item ans-neutral"><div class="aletter">D</div><div class="atext">800 н.э.</div></div>
+    </div>
+  </div>
+
+  <div class="result-score-box">
+    <div class="rscore-label">очков за раунд</div>
+    <div class="rscore-num">500</div>
+    <div class="rscore-breakdown">
+      <div class="rb-item"><div class="rb-val" style="color:#FF5252">+0</div><div class="rb-lbl">регион</div></div>
+      <div class="rb-item"><div class="rb-val" style="color:#4CAF50">+500</div><div class="rb-lbl">год</div></div>
+    </div>
+  </div>
+
+  <div class="result-btn-area">
     <button class="btn-next">Следующий раунд →</button>
-    <button class="btn-skip">✕</button>
   </div>
 </div>
 
-<!-- SCREEN 4: FINAL SCORE -->
+<!-- ④ ФИНАЛ -->
 <div class="screen" id="screen-final">
-  <div class="final-trophy">🏆</div>
+  <div class="final-icon">🏆</div>
   <div class="final-title">Игра окончена!</div>
-  <div class="final-subtitle">5 раундов пройдено</div>
-
-  <div class="final-score-box">
-    <div class="final-score-num">3450</div>
-    <div class="final-score-max">из 5000</div>
-    <div class="final-stars">⭐⭐⭐☆☆</div>
+  <div class="final-sub">5 раундов · итог</div>
+  <div class="final-scorebox">
+    <div class="fs-num">3450</div>
+    <div class="fs-of">из 5000 очков</div>
+    <div class="fs-stars">⭐⭐⭐☆☆</div>
   </div>
-
-  <div class="final-breakdown">
-    <div class="final-round-row"><span class="rnd">Раунд 1 — Древний Рим</span><span class="pts">900</span></div>
-    <div class="final-round-row"><span class="rnd">Раунд 2 — Париж 1847</span><span class="pts">850</span></div>
-    <div class="final-round-row"><span class="rnd">Раунд 3 — Самурайская Япония</span><span class="pts">700</span></div>
-    <div class="final-round-row"><span class="rnd">Раунд 4 — Викторианский Лондон</span><span class="pts">600</span></div>
-    <div class="final-round-row"><span class="rnd">Раунд 5 — Древний Египет</span><span class="pts">400</span></div>
+  <div class="final-list">
+    <div class="fl-row"><span class="fl-name">1 · Древний Рим</span><span class="fl-pts">900</span></div>
+    <div class="fl-row"><span class="fl-name">2 · Париж, XIX в.</span><span class="fl-pts">850</span></div>
+    <div class="fl-row"><span class="fl-name">3 · Самурайская Япония</span><span class="fl-pts">700</span></div>
+    <div class="fl-row"><span class="fl-name">4 · Викторианский Лондон</span><span class="fl-pts">600</span></div>
+    <div class="fl-row"><span class="fl-name">5 · Древний Египет</span><span class="fl-pts">400</span></div>
   </div>
-
-  <div class="final-actions">
-    <button class="btn-playagain">🔄 Играть снова</button>
+  <div class="final-btns">
+    <button class="btn-again">🔄 Играть снова</button>
     <button class="btn-share">📤 Поделиться результатом</button>
   </div>
 </div>
 
 <script>
-// Slider sync
-const slider = document.querySelector('input[type=range]');
-const yearDisplay = document.querySelector('.year-display');
-if (slider) slider.addEventListener('input', () => { yearDisplay.textContent = slider.value; });
-
-function show(name) {
+function go(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
-  document.querySelectorAll('#nav button').forEach((b, i) => {
-    b.classList.toggle('active', b.textContent.includes(name.charAt(0).toUpperCase() + name.slice(1)) || b.onclick.toString().includes(name));
-  });
+  document.querySelectorAll('#nav button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
 }
+// Region click
+document.querySelectorAll('.region-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    btn.closest('.region-grid').querySelectorAll('.region-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  });
+});
+// Answer click
+document.querySelectorAll('.answer-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    btn.closest('.answers-grid').querySelectorAll('.answer-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  });
+});
 </script>
 </body>
 </html>
