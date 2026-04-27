@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TimeGuess — Mockup</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0f0f1a; font-family: 'Georgia', serif; color: #fff; }
+
+/* NAVIGATION between screens */
+#nav { position: fixed; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.8); display: flex; gap: 8px; padding: 8px; z-index: 999; flex-wrap: wrap; }
+#nav button { background: #333; color: #aaa; border: 1px solid #555; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
+#nav button.active { background: #FFD700; color: #000; }
+
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ===== SCREEN 1: START ===== */
+#screen-start {
+  background: linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 50%, #0f1a2e 100%);
+  justify-content: center; align-items: center; text-align: center; padding: 40px 20px;
+}
+.start-logo { font-size: 64px; margin-bottom: 16px; }
+.start-title { font-size: 48px; color: #FFD700; text-shadow: 0 0 30px rgba(255,215,0,0.5); margin-bottom: 8px; letter-spacing: 2px; }
+.start-subtitle { font-size: 18px; color: #aaa; margin-bottom: 48px; font-style: italic; }
+.start-description { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; max-width: 400px; margin: 0 auto 40px; }
+.start-description p { color: #ccc; font-size: 15px; line-height: 1.8; }
+.start-description span { color: #FFD700; }
+.btn-primary { background: linear-gradient(135deg, #FFD700, #FF6B35); color: #000; border: none; border-radius: 50px; padding: 18px 60px; font-size: 22px; font-weight: bold; cursor: pointer; letter-spacing: 1px; box-shadow: 0 8px 30px rgba(255,215,0,0.4); }
+.rounds-select { margin-bottom: 32px; color: #aaa; font-size: 14px; }
+.rounds-select select { background: #1a1a2e; color: #fff; border: 1px solid #444; border-radius: 8px; padding: 6px 12px; font-size: 14px; margin-left: 8px; }
+
+/* ===== SCREEN 2: ROUND (gameplay) ===== */
+#screen-round { background: #0f0f1a; }
+.round-header { background: rgba(0,0,0,0.6); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
+.round-badge { background: #FFD700; color: #000; border-radius: 20px; padding: 4px 14px; font-size: 13px; font-weight: bold; }
+.round-timer { font-size: 24px; color: #FF6B35; font-weight: bold; font-family: monospace; }
+.round-score { color: #aaa; font-size: 14px; }
+.round-score span { color: #FFD700; font-weight: bold; }
+
+.image-area { position: relative; width: 100%; height: 300px; overflow: hidden; }
+.image-area img { width: 100%; height: 100%; object-fit: cover; }
+.image-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 20px; }
+.image-hint { color: #ccc; font-size: 13px; font-style: italic; }
+
+.guess-panel { padding: 20px; flex: 1; }
+.guess-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.guess-title { font-size: 18px; color: #fff; margin-bottom: 20px; }
+
+/* Region picker */
+.region-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 24px; }
+.region-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 6px; text-align: center; cursor: pointer; transition: all 0.2s; font-size: 12px; color: #ccc; }
+.region-btn:hover, .region-btn.selected { background: rgba(255,215,0,0.15); border-color: #FFD700; color: #FFD700; }
+.region-btn .flag { font-size: 20px; display: block; margin-bottom: 4px; }
+
+/* Year slider */
+.year-area { margin-bottom: 24px; }
+.year-display { text-align: center; font-size: 36px; color: #FFD700; font-weight: bold; margin-bottom: 8px; font-family: monospace; }
+.year-range { display: flex; justify-content: space-between; font-size: 11px; color: #666; margin-bottom: 6px; }
+input[type=range] { width: 100%; accent-color: #FFD700; height: 6px; }
+
+.btn-submit { width: 100%; background: linear-gradient(135deg, #FFD700, #FF6B35); color: #000; border: none; border-radius: 12px; padding: 16px; font-size: 18px; font-weight: bold; cursor: pointer; }
+.btn-submit:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+/* ===== SCREEN 3: ROUND RESULT ===== */
+#screen-result { background: #0f0f1a; justify-content: flex-start; padding: 0; }
+.result-header { padding: 20px; background: rgba(0,0,0,0.4); border-bottom: 1px solid #222; text-align: center; }
+.result-round { color: #888; font-size: 13px; margin-bottom: 4px; }
+.result-verdict { font-size: 28px; font-weight: bold; }
+.result-verdict.great { color: #4CAF50; }
+.result-verdict.ok { color: #FFD700; }
+.result-verdict.miss { color: #FF5252; }
+
+.result-image { width: 100%; height: 200px; object-fit: cover; }
+.result-answer { padding: 20px; }
+.answer-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1a1a1a; }
+.answer-label { color: #888; font-size: 13px; }
+.answer-value { font-size: 15px; }
+.answer-correct { color: #4CAF50; }
+.answer-wrong { color: #FF5252; text-decoration: line-through; }
+.answer-actual { color: #FFD700; margin-left: 8px; }
+
+.result-points { text-align: center; padding: 20px; background: rgba(255,215,0,0.05); border-radius: 12px; margin: 16px 20px; }
+.result-points .pts { font-size: 52px; color: #FFD700; font-weight: bold; }
+.result-points .pts-label { color: #888; font-size: 14px; }
+.result-breakdown { display: flex; justify-content: center; gap: 24px; margin-top: 8px; }
+.breakdown-item { text-align: center; }
+.breakdown-item .val { color: #ccc; font-size: 18px; font-weight: bold; }
+.breakdown-item .lbl { color: #666; font-size: 11px; }
+
+.result-actions { padding: 20px; display: flex; gap: 12px; }
+.btn-next { flex: 1; background: #FFD700; color: #000; border: none; border-radius: 12px; padding: 16px; font-size: 16px; font-weight: bold; cursor: pointer; }
+.btn-skip { background: transparent; color: #666; border: 1px solid #333; border-radius: 12px; padding: 16px 20px; font-size: 14px; cursor: pointer; }
+
+/* ===== SCREEN 4: FINAL SCORE ===== */
+#screen-final { background: linear-gradient(135deg, #0f0f1a, #1a1a3e); justify-content: flex-start; padding: 40px 20px; align-items: center; text-align: center; }
+.final-trophy { font-size: 80px; margin-bottom: 16px; }
+.final-title { font-size: 32px; color: #FFD700; margin-bottom: 8px; }
+.final-subtitle { color: #888; font-size: 15px; margin-bottom: 32px; }
+
+.final-score-box { background: rgba(255,215,0,0.1); border: 2px solid rgba(255,215,0,0.3); border-radius: 20px; padding: 32px; width: 100%; max-width: 360px; margin-bottom: 24px; }
+.final-score-num { font-size: 72px; color: #FFD700; font-weight: bold; line-height: 1; }
+.final-score-max { color: #888; font-size: 16px; margin-bottom: 16px; }
+.final-stars { font-size: 36px; margin-bottom: 8px; }
+
+.final-breakdown { width: 100%; max-width: 360px; margin-bottom: 32px; }
+.final-round-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1a1a1a; font-size: 14px; }
+.final-round-row .rnd { color: #888; }
+.final-round-row .pts { color: #FFD700; font-weight: bold; }
+
+.final-actions { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 360px; }
+.btn-playagain { background: linear-gradient(135deg, #FFD700, #FF6B35); color: #000; border: none; border-radius: 12px; padding: 16px; font-size: 18px; font-weight: bold; cursor: pointer; }
+.btn-share { background: transparent; color: #ccc; border: 1px solid #444; border-radius: 12px; padding: 14px; font-size: 15px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<div id="nav">
+  <button class="active" onclick="show('start')">① Start</button>
+  <button onclick="show('round')">② Round (game)</button>
+  <button onclick="show('result')">③ Round Result</button>
+  <button onclick="show('final')">④ Final Score</button>
+</div>
+
+<!-- SCREEN 1: START -->
+<div class="screen active" id="screen-start" style="padding-top: 50px">
+  <div class="start-logo">🗺️</div>
+  <div class="start-title">TimeGuess</div>
+  <div class="start-subtitle">Where & When in History?</div>
+  <div class="start-description">
+    <p>Тебе показывают <span>AI-сгенерированную сцену</span> из истории.<br><br>
+    Угадай <span>регион</span> и <span>год</span>.<br><br>
+    Чем точнее — тем больше очков.</p>
+  </div>
+  <div class="rounds-select">
+    Раундов:
+    <select><option>5</option><option>10</option></select>
+  </div>
+  <button class="btn-primary">▶ Начать</button>
+</div>
+
+<!-- SCREEN 2: ROUND -->
+<div class="screen" id="screen-round" style="padding-top: 44px">
+  <div class="round-header">
+    <div class="round-badge">Раунд 2 / 5</div>
+    <div class="round-timer">0:45</div>
+    <div class="round-score">Очки: <span>1200</span></div>
+  </div>
+
+  <div class="image-area">
+    <!-- Placeholder image -->
+    <div style="width:100%;height:300px;background:linear-gradient(135deg,#2a1a0e,#4a3020,#1a0a05);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px">
+      <div style="font-size:48px">🏛️</div>
+      <div style="color:#888;font-size:13px">AI-generated historical scene</div>
+    </div>
+    <div class="image-overlay">
+      <div class="image-hint">Что это за место и время?</div>
+    </div>
+  </div>
+
+  <div class="guess-panel">
+    <div class="guess-label">Шаг 1 — Регион</div>
+    <div class="region-grid">
+      <div class="region-btn selected"><span class="flag">🌍</span>Европа</div>
+      <div class="region-btn"><span class="flag">🌎</span>Америка</div>
+      <div class="region-btn"><span class="flag">🌏</span>Азия</div>
+      <div class="region-btn"><span class="flag">🕌</span>Ближний Восток</div>
+      <div class="region-btn"><span class="flag">🌴</span>Африка</div>
+      <div class="region-btn"><span class="flag">🗿</span>Океания</div>
+    </div>
+
+    <div class="guess-label">Шаг 2 — Год</div>
+    <div class="year-area">
+      <div class="year-display">1850</div>
+      <div class="year-range"><span>−3000</span><span>2000</span></div>
+      <input type="range" min="-3000" max="2000" value="1850">
+    </div>
+
+    <button class="btn-submit">Отправить ответ →</button>
+  </div>
+</div>
+
+<!-- SCREEN 3: ROUND RESULT -->
+<div class="screen" id="screen-result">
+  <div class="result-header" style="padding-top:54px">
+    <div class="result-round">Раунд 2 из 5</div>
+    <div class="result-verdict ok">Неплохо! 👍</div>
+  </div>
+
+  <div style="width:100%;height:180px;background:linear-gradient(135deg,#2a1a0e,#4a3020);display:flex;align-items:center;justify-content:center">
+    <div style="font-size:64px">🏛️</div>
+  </div>
+
+  <div class="result-answer">
+    <div class="answer-row">
+      <div class="answer-label">Регион</div>
+      <div class="answer-value">
+        <span class="answer-wrong">Азия</span>
+        <span class="answer-actual">→ Европа ✓</span>
+      </div>
+    </div>
+    <div class="answer-row">
+      <div class="answer-label">Твой год</div>
+      <div class="answer-value answer-correct">1850</div>
+    </div>
+    <div class="answer-row">
+      <div class="answer-label">Реальный год</div>
+      <div class="answer-value answer-correct">1847 (+3 года)</div>
+    </div>
+    <div class="answer-row">
+      <div class="answer-label">Место</div>
+      <div class="answer-value" style="color:#FFD700">Париж, Франция</div>
+    </div>
+  </div>
+
+  <div class="result-points">
+    <div class="pts">850</div>
+    <div class="pts-label">очков за раунд</div>
+    <div class="result-breakdown">
+      <div class="breakdown-item"><div class="val" style="color:#FF5252">0</div><div class="lbl">регион</div></div>
+      <div class="breakdown-item"><div class="val" style="color:#4CAF50">+850</div><div class="lbl">год (±3)</div></div>
+    </div>
+  </div>
+
+  <div class="result-actions">
+    <button class="btn-next">Следующий раунд →</button>
+    <button class="btn-skip">✕</button>
+  </div>
+</div>
+
+<!-- SCREEN 4: FINAL SCORE -->
+<div class="screen" id="screen-final">
+  <div class="final-trophy">🏆</div>
+  <div class="final-title">Игра окончена!</div>
+  <div class="final-subtitle">5 раундов пройдено</div>
+
+  <div class="final-score-box">
+    <div class="final-score-num">3450</div>
+    <div class="final-score-max">из 5000</div>
+    <div class="final-stars">⭐⭐⭐☆☆</div>
+  </div>
+
+  <div class="final-breakdown">
+    <div class="final-round-row"><span class="rnd">Раунд 1 — Древний Рим</span><span class="pts">900</span></div>
+    <div class="final-round-row"><span class="rnd">Раунд 2 — Париж 1847</span><span class="pts">850</span></div>
+    <div class="final-round-row"><span class="rnd">Раунд 3 — Самурайская Япония</span><span class="pts">700</span></div>
+    <div class="final-round-row"><span class="rnd">Раунд 4 — Викторианский Лондон</span><span class="pts">600</span></div>
+    <div class="final-round-row"><span class="rnd">Раунд 5 — Древний Египет</span><span class="pts">400</span></div>
+  </div>
+
+  <div class="final-actions">
+    <button class="btn-playagain">🔄 Играть снова</button>
+    <button class="btn-share">📤 Поделиться результатом</button>
+  </div>
+</div>
+
+<script>
+// Slider sync
+const slider = document.querySelector('input[type=range]');
+const yearDisplay = document.querySelector('.year-display');
+if (slider) slider.addEventListener('input', () => { yearDisplay.textContent = slider.value; });
+
+function show(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll('#nav button').forEach((b, i) => {
+    b.classList.toggle('active', b.textContent.includes(name.charAt(0).toUpperCase() + name.slice(1)) || b.onclick.toString().includes(name));
+  });
+}
+</script>
+</body>
+</html>
