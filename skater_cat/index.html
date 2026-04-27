@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Skater Cat 🐱</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: 'Arial Rounded MT Bold', Arial, sans-serif; }
+#game-container { position: relative; width: 360px; height: 640px; }
+canvas { display: block; }
+#ui-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+#score-display { position: absolute; top: 16px; left: 0; width: 100%; text-align: center; color: #fff; font-size: 28px; font-weight: bold; text-shadow: 2px 2px 0 #000; pointer-events: none; }
+#screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(0,0,0,0.6); }
+#screen.hidden { display: none; }
+#screen h1 { font-size: 42px; color: #FFD700; text-shadow: 3px 3px 0 #000; margin-bottom: 8px; }
+#screen .subtitle { font-size: 16px; color: #fff; margin-bottom: 40px; text-shadow: 1px 1px 0 #000; }
+#screen .btn { background: #FFD700; color: #1a1a2e; border: none; border-radius: 30px; padding: 14px 48px; font-size: 22px; font-weight: bold; cursor: pointer; pointer-events: all; box-shadow: 0 4px 0 #b8860b; transition: transform 0.1s; }
+#screen .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #b8860b; }
+#screen .score-box { color: #fff; font-size: 20px; text-shadow: 1px 1px 0 #000; margin-bottom: 24px; text-align: center; }
+#screen .score-box span { color: #FFD700; font-size: 32px; display: block; }
+#pause-btn { position: absolute; top: 14px; right: 14px; background: rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.4); border-radius: 50%; width: 40px; height: 40px; color: #fff; font-size: 18px; cursor: pointer; pointer-events: all; display: flex; align-items: center; justify-content: center; }
+#loading-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a2e; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
+#loading-screen h2 { color: #FFD700; font-size: 28px; margin-bottom: 24px; }
+#progress-bar-bg { width: 260px; height: 16px; background: #333; border-radius: 8px; overflow: hidden; }
+#progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #FFD700, #FF6B35); border-radius: 8px; transition: width 0.3s; }
+#loading-text { color: #aaa; font-size: 13px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div id="game-container">
+  <canvas id="gameCanvas" width="360" height="640"></canvas>
+
+  <!-- Loading -->
+  <div id="loading-screen">
+    <h2>🐱 Skater Cat</h2>
+    <div id="progress-bar-bg"><div id="progress-bar"></div></div>
+    <div id="loading-text">Loading assets...</div>
+  </div>
+
+  <!-- Score -->
+  <div id="score-display" style="display:none">0</div>
+
+  <!-- Pause button -->
+  <button id="pause-btn" style="display:none">⏸</button>
+
+  <!-- Start screen -->
+  <div id="screen" class="hidden">
+    <h1>🐱 Skater Cat</h1>
+    <div class="subtitle">Swipe or tap to dodge obstacles!</div>
+    <button class="btn" id="action-btn">Play</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const W = 360, H = 640;
+
+// Game state
+let state = 'loading'; // loading, start, playing, paused, gameover
+let score = 0, bestScore = 0, distance = 0;
+let gameSpeed = 3, speedTimer = 0;
+let animFrame;
+
+// Assets
+const assets = {};
+const assetList = [
+  ['cat_ride','assets/cat_ride.png'],
+  ['cat_left','assets/cat_lean_left.png'],
+  ['cat_right','assets/cat_lean_right.png'],
+  ['cat_crash','assets/cat_crash.png'],
+  ['bg_sky','assets/bg_sky.png'],
+  ['bg_city','assets/bg_city.png'],
+  ['bg_promenade','assets/bg_promenade.png'],
+  ['obs_car','assets/obs_car.png'],
+  ['obs_bin','assets/obs_bin.png'],
+  ['obs_bench','assets/obs_bench.png'],
+  ['obs_pedestrian','assets/obs_pedestrian.png'],
+  ['obs_flowerpot','assets/obs_flowerpot.png'],
+  ['col_fish','assets/col_fish.png'],
+  ['col_yarn','assets/col_yarn.png'],
+  ['col_star','assets/col_star.png'],
+];
+
+const OBSTACLE_TYPES = ['obs_car','obs_bin','obs_bench','obs_pedestrian','obs_flowerpot'];
+const COLLECTIBLE_TYPES = ['col_fish','col_yarn','col_star'];
+const COLLECTIBLE_SCORES = {col_fish:10, col_yarn:15, col_star:25};
+
+// Load assets
+function loadAssets() {
+  let loaded = 0;
+  const total = assetList.length;
+  return new Promise(resolve => {
+    assetList.forEach(([key, src]) => {
+      const img = new Image();
+      img.onload = () => {
+        assets[key] = img;
+        loaded++;
+        document.getElementById('progress-bar').style.width = (loaded/total*100)+'%';
+        document.getElementById('loading-text').textContent = `Loading... ${loaded}/${total}`;
+        if (loaded === total) resolve();
+      };
+      img.onerror = () => {
+        // Fallback: create colored placeholder
+        assets[key] = createPlaceholder(key);
+        loaded++;
+        document.getElementById('progress-bar').style.width = (loaded/total*100)+'%';
+        if (loaded === total) resolve();
+      };
+      img.src = src;
+    });
+  });
+}
+
+function createPlaceholder(key) {
+  const c = document.createElement('canvas');
+  c.width = 80; c.height = 80;
+  const x = c.getContext('2d');
+  x.fillStyle = key.startsWith('cat') ? '#FF6B35' : key.startsWith('bg') ? '#4a90d9' : key.startsWith('obs') ? '#e74c3c' : '#FFD700';
+  x.fillRect(0,0,80,80);
+  x.fillStyle = '#fff';
+  x.font = '10px Arial';
+  x.textAlign = 'center';
+  x.fillText(key.slice(0,8), 40, 44);
+  return c;
+}
+
+// Parallax backgrounds
+const bgLayers = [
+  { key: 'bg_sky', speed: 0.2, x: 0, y: 0, h: 220 },
+  { key: 'bg_city', speed: 0.5, x: 0, y: 160, h: 260 },
+  { key: 'bg_promenade', speed: 1.0, x: 0, y: 340, h: 300 },
+];
+
+// Road
+const road = { x: 0, y: 480, w: W, h: 160, color: '#555' };
+const LANE_X = [60, 180, 300];
+const LANE_COUNT = 3;
+
+// Cat
+let cat = {
+  lane: 1, targetLane: 1, x: 180, y: 480,
+  w: 80, h: 80,
+  animFrame: 0, animTimer: 0,
+  transitioning: false, transitionProgress: 0, fromX: 180,
+  state: 'ride', // ride, lean_left, lean_right, crash
+  crashTimer: 0, invincible: false, invincibleTimer: 0,
+};
+
+// Objects
+let obstacles = [];
+let collectibles = [];
+let particles = [];
+let spawnTimer = 0;
+let collectibleSpawnTimer = 0;
+
+// Touch/input
+let touchStartX = null;
+
+function resetGame() {
+  score = 0; distance = 0; gameSpeed = 3; speedTimer = 0;
+  obstacles = []; collectibles = []; particles = [];
+  spawnTimer = 0; collectibleSpawnTimer = 0;
+  cat.lane = 1; cat.targetLane = 1; cat.x = LANE_X[1];
+  cat.transitioning = false; cat.transitionProgress = 0;
+  cat.state = 'ride'; cat.crashTimer = 0;
+  cat.invincible = false; cat.invincibleTimer = 0;
+  bgLayers.forEach(l => l.x = 0);
+  document.getElementById('score-display').textContent = '0';
+}
+
+// Obstacle spawning with fairness
+function spawnObstacle() {
+  // Check which lanes are blocked near bottom
+  const blockedLanes = new Set();
+  obstacles.forEach(o => {
+    if (o.y > H - 300) blockedLanes.add(o.lane);
+  });
+
+  // Pick a lane that isn't blocked, never block all 3
+  let availableLanes = [0,1,2].filter(l => !blockedLanes.has(l));
+  if (availableLanes.length === 0) availableLanes = [0,1,2];
+
+  // Spawn 1 or 2 obstacles (but leave at least 1 lane free)
+  const count = Math.random() < 0.3 && gameSpeed > 5 ? 2 : 1;
+  const usedLanes = [];
+
+  for (let i = 0; i < count; i++) {
+    if (availableLanes.length === 0) break;
+    const idx = Math.floor(Math.random() * availableLanes.length);
+    const lane = availableLanes[idx];
+    availableLanes.splice(idx, 1);
+    usedLanes.push(lane);
+
+    const type = OBSTACLE_TYPES[Math.floor(Math.random() * OBSTACLE_TYPES.length)];
+    obstacles.push({ lane, x: LANE_X[lane], y: -80, w: 70, h: 70, type });
+  }
+}
+
+function spawnCollectible() {
+  const lane = Math.floor(Math.random() * 3);
+  // Don't spawn on same lane as nearby obstacle
+  const blocked = obstacles.some(o => o.lane === lane && o.y < 100);
+  if (blocked) return;
+  const type = COLLECTIBLE_TYPES[Math.floor(Math.random() * COLLECTIBLE_TYPES.length)];
+  collectibles.push({ lane, x: LANE_X[lane], y: -50, w: 50, h: 50, type });
+}
+
+// Particle effect
+function spawnParticles(x, y, color) {
+  for (let i = 0; i < 8; i++) {
+    const angle = (Math.PI * 2 / 8) * i;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * (2 + Math.random() * 3),
+      vy: Math.sin(angle) * (2 + Math.random() * 3),
+      life: 1, color,
+      r: 4 + Math.random() * 4
+    });
+  }
+}
+
+// AABB collision with shrunk hitbox (65%)
+function checkCollision(a, b) {
+  const shrink = 0.35;
+  const ax = a.x - a.w*0.5*(1-shrink), ay = a.y - a.h*0.5*(1-shrink);
+  const aw = a.w*(1-shrink), ah = a.h*(1-shrink);
+  const bx = b.x - b.w*0.5*(1-shrink), by = b.y - b.h*0.5*(1-shrink);
+  const bw = b.w*(1-shrink), bh = b.h*(1-shrink);
+  return ax < bx+bw && ax+aw > bx && ay < by+bh && ay+ah > by;
+}
+
+// Input
+function handleLeft() {
+  if (state !== 'playing') return;
+  if (cat.transitioning) return;
+  if (cat.lane > 0) {
+    cat.fromX = cat.x;
+    cat.targetLane = cat.lane - 1;
+    cat.lane = cat.targetLane;
+    cat.transitioning = true;
+    cat.transitionProgress = 0;
+    cat.state = 'lean_left';
+  }
+}
+function handleRight() {
+  if (state !== 'playing') return;
+  if (cat.transitioning) return;
+  if (cat.lane < 2) {
+    cat.fromX = cat.x;
+    cat.targetLane = cat.lane + 1;
+    cat.lane = cat.targetLane;
+    cat.transitioning = true;
+    cat.transitionProgress = 0;
+    cat.state = 'lean_right';
+  }
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft' || e.key === 'a') handleLeft();
+  else if (e.key === 'ArrowRight' || e.key === 'd') handleRight();
+  else if (e.key === 'Escape' || e.key === 'p') togglePause();
+});
+
+// Touch
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  touchStartX = e.touches[0].clientX;
+}, {passive:false});
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (touchStartX === null) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 30) {
+    if (dx < 0) handleLeft();
+    else handleRight();
+  } else {
+    // Tap to start/restart
+    if (state === 'start' || state === 'gameover') startGame();
+  }
+  touchStartX = null;
+}, {passive:false});
+
+// Mouse click for desktop
+canvas.addEventListener('click', e => {
+  const rect = canvas.getBoundingClientRect();
+  const cx = (e.clientX - rect.left) / (rect.width / W);
+  if (state === 'playing') {
+    if (cx < W/2) handleLeft();
+    else handleRight();
+  }
+});
+
+function togglePause() {
+  if (state === 'playing') {
+    state = 'paused';
+    showScreen('⏸ Paused', '', 'Resume', false);
+    document.getElementById('pause-btn').textContent = '▶';
+    cancelAnimationFrame(animFrame);
+  } else if (state === 'paused') {
+    state = 'playing';
+    hideScreen();
+    document.getElementById('pause-btn').textContent = '⏸';
+    gameLoop();
+  }
+}
+
+document.getElementById('pause-btn').addEventListener('click', togglePause);
+
+function showScreen(title, subtitle, btnText, showScore) {
+  const screen = document.getElementById('screen');
+  screen.innerHTML = '';
+  screen.classList.remove('hidden');
+
+  if (showScore) {
+    const h = document.createElement('h1'); h.textContent = title; screen.appendChild(h);
+    const scoreBox = document.createElement('div'); scoreBox.className = 'score-box';
+    scoreBox.innerHTML = `Score<span>${score}</span>`;
+    if (bestScore > 0) scoreBox.innerHTML += `Best <span style="font-size:22px;color:#aaa">${bestScore}</span>`;
+    screen.appendChild(scoreBox);
+  } else {
+    const h = document.createElement('h1'); h.textContent = title; screen.appendChild(h);
+    if (subtitle) {
+      const s = document.createElement('div'); s.className = 'subtitle'; s.textContent = subtitle; screen.appendChild(s);
+    }
+  }
+  const btn = document.createElement('button');
+  btn.className = 'btn'; btn.id = 'action-btn'; btn.textContent = btnText;
+  btn.addEventListener('click', () => {
+    if (state === 'start' || state === 'gameover') startGame();
+    else if (state === 'paused') togglePause();
+  });
+  screen.appendChild(btn);
+}
+
+function hideScreen() {
+  document.getElementById('screen').classList.add('hidden');
+}
+
+function startGame() {
+  resetGame();
+  state = 'playing';
+  hideScreen();
+  document.getElementById('score-display').style.display = 'block';
+  document.getElementById('pause-btn').style.display = 'flex';
+  gameLoop();
+}
+
+function gameOver() {
+  state = 'gameover';
+  if (score > bestScore) {
+    try { bestScore = score; localStorage.setItem('skatercat_best', bestScore); } catch(e) {}
+  }
+  cat.state = 'crash';
+  document.getElementById('pause-btn').style.display = 'none';
+  setTimeout(() => {
+    showScreen('💥 Game Over', '', 'Play Again', true);
+  }, 800);
+}
+
+// Update
+function update() {
+  if (state !== 'playing') return;
+
+  distance += gameSpeed;
+  score = Math.floor(distance / 10);
+  document.getElementById('score-display').textContent = score;
+
+  // Speed up over time
+  speedTimer++;
+  if (speedTimer > 300) { gameSpeed = Math.min(gameSpeed + 0.5, 12); speedTimer = 0; }
+
+  // Parallax scroll
+  bgLayers.forEach(l => {
+    l.x -= gameSpeed * l.speed;
+    if (assets[l.key]) {
+      const imgW = assets[l.key].width || W;
+      const scaledW = (l.h / (assets[l.key].height || l.h)) * imgW;
+      if (l.x <= -scaledW) l.x += scaledW;
+    }
+  });
+
+  // Cat transition
+  if (cat.transitioning) {
+    cat.transitionProgress = Math.min(cat.transitionProgress + 0.15, 1);
+    const ease = 1 - Math.pow(1 - cat.transitionProgress, 3);
+    cat.x = cat.fromX + (LANE_X[cat.targetLane] - cat.fromX) * ease;
+    if (cat.transitionProgress >= 1) {
+      cat.transitioning = false;
+      cat.x = LANE_X[cat.targetLane];
+      cat.state = 'ride';
+    }
+  }
+
+  // Idle wobble
+  cat.animTimer++;
+  if (cat.animTimer > 15) { cat.animFrame = 1 - cat.animFrame; cat.animTimer = 0; }
+
+  // Invincibility
+  if (cat.invincible) {
+    cat.invincibleTimer--;
+    if (cat.invincibleTimer <= 0) cat.invincible = false;
+  }
+
+  // Spawn obstacles
+  spawnTimer++;
+  const spawnInterval = Math.max(60, 120 - gameSpeed * 5);
+  if (spawnTimer > spawnInterval) { spawnObstacle(); spawnTimer = 0; }
+
+  // Spawn collectibles
+  collectibleSpawnTimer++;
+  if (collectibleSpawnTimer > 90) { spawnCollectible(); collectibleSpawnTimer = 0; }
+
+  // Update obstacles
+  obstacles = obstacles.filter(o => {
+    o.y += gameSpeed;
+    if (!cat.invincible && checkCollision(
+      {x:cat.x, y:cat.y-20, w:cat.w*0.7, h:cat.h},
+      {x:o.x, y:o.y, w:o.w, h:o.h}
+    )) {
+      spawnParticles(cat.x, cat.y, '#FF6B35');
+      gameOver();
+      return false;
+    }
+    return o.y < H + 100;
+  });
+
+  // Update collectibles
+  collectibles = collectibles.filter(c => {
+    c.y += gameSpeed;
+    if (checkCollision(
+      {x:cat.x, y:cat.y-20, w:cat.w, h:cat.h},
+      {x:c.x, y:c.y, w:c.w, h:c.h}
+    )) {
+      score += COLLECTIBLE_SCORES[c.type] || 10;
+      spawnParticles(c.x, c.y, '#FFD700');
+      return false;
+    }
+    return c.y < H + 60;
+  });
+
+  // Particles
+  particles = particles.filter(p => {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.2;
+    p.life -= 0.05;
+    return p.life > 0;
+  });
+}
+
+// Draw
+function drawImage(key, x, y, w, h, alpha=1) {
+  if (!assets[key]) return;
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(assets[key], x - w/2, y - h/2, w, h);
+  ctx.globalAlpha = 1;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Background layers
+  bgLayers.forEach(l => {
+    if (!assets[l.key]) {
+      ctx.fillStyle = '#4a90d9';
+      ctx.fillRect(0, l.y, W, l.h);
+      return;
+    }
+    const img = assets[l.key];
+    const scale = l.h / img.height;
+    const scaledW = img.width * scale;
+    let x = l.x % scaledW;
+    if (x > 0) x -= scaledW;
+    while (x < W) {
+      ctx.drawImage(img, x, l.y, scaledW, l.h);
+      x += scaledW;
+    }
+  });
+
+  // Road
+  ctx.fillStyle = '#666';
+  ctx.fillRect(0, road.y, W, road.h);
+  // Lane lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([20, 20]);
+  [120, 240].forEach(lx => {
+    ctx.beginPath();
+    ctx.moveTo(lx, road.y);
+    ctx.lineTo(lx, H);
+    ctx.stroke();
+  });
+  ctx.setLineDash([]);
+
+  // Collectibles
+  collectibles.forEach(c => {
+    const wobble = Math.sin(Date.now()/200 + c.x) * 3;
+    drawImage(c.type, c.x, c.y + wobble, c.w, c.h);
+  });
+
+  // Obstacles
+  obstacles.forEach(o => {
+    drawImage(o.type, o.x, o.y, o.w, o.h);
+  });
+
+  // Cat
+  const catAlpha = cat.invincible ? (Math.floor(Date.now()/100)%2 === 0 ? 0.4 : 1) : 1;
+  let catKey = 'cat_ride';
+  if (cat.state === 'lean_left') catKey = 'cat_left';
+  else if (cat.state === 'lean_right') catKey = 'cat_right';
+  else if (cat.state === 'crash') catKey = 'cat_crash';
+  // Idle wobble offset
+  const wobbleY = cat.animFrame === 1 ? -2 : 0;
+  drawImage(catKey, cat.x, cat.y - 20 + wobbleY, cat.w, cat.h, catAlpha);
+
+  // Particles
+  particles.forEach(p => {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI*2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
+  // Score (via DOM)
+}
+
+function gameLoop() {
+  update();
+  draw();
+  if (state === 'playing') animFrame = requestAnimationFrame(gameLoop);
+}
+
+// Init
+try { bestScore = parseInt(localStorage.getItem('skatercat_best')) || 0; } catch(e) {}
+
+loadAssets().then(() => {
+  document.getElementById('loading-screen').style.display = 'none';
+  state = 'start';
+  showScreen('🐱 Skater Cat', 'Tap sides or swipe to dodge!', 'Play', false);
+  // Draw static background while on start screen
+  function drawStatic() {
+    draw();
+    if (state === 'start' || state === 'gameover') requestAnimationFrame(drawStatic);
+  }
+  drawStatic();
+});
+</script>
+</body>
+</html>
