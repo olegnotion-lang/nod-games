@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ПАУРС — корм для собак</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fff; }
+  .hero-font { font-family: 'Unbounded', sans-serif; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-18px)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
+  .float { animation: float 4s ease-in-out infinite; }
+  .fade-up { animation: fadeUp 0.8s ease forwards; opacity: 0; }
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.25s; }
+  .delay-3 { animation-delay: 0.4s; }
+  .delay-4 { animation-delay: 0.55s; }
+  .shimmer-text {
+    background: linear-gradient(90deg, #f97316, #fbbf24, #f97316);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 3s linear infinite;
+  }
+  .card-glow:hover { box-shadow: 0 0 40px rgba(249,115,22,0.3); transform: translateY(-4px); transition: all 0.3s; }
+  .btn-glow { box-shadow: 0 0 30px rgba(249,115,22,0.5); }
+  .btn-glow:hover { box-shadow: 0 0 50px rgba(249,115,22,0.8); transform: scale(1.04); }
+  .grain { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); }
+  .pill { backdrop-filter: blur(12px); }
+  input:focus { outline: none; }
+  .star { color: #fbbf24; }
+</style>
+</head>
+<body class="grain">
+
+<!-- NAV -->
+<nav class="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex justify-between items-center" style="background:rgba(10,10,10,0.8);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.06)">
+  <div class="hero-font text-lg font-black tracking-widest">ПАУРС<span class="text-orange-500">.</span></div>
+  <div class="hidden md:flex gap-8 text-sm text-gray-400">
+    <a href="#" class="hover:text-white transition">Состав</a>
+    <a href="#" class="hover:text-white transition">Линейка</a>
+    <a href="#" class="hover:text-white transition">Отзывы</a>
+  </div>
+  <button class="text-sm px-4 py-2 rounded-full border border-orange-500 text-orange-400 hover:bg-orange-500 hover:text-black transition font-medium">Купить</button>
+</nav>
+
+<!-- HERO -->
+<section class="min-h-screen flex flex-col items-center justify-center text-center px-6 pt-20 relative overflow-hidden">
+  <!-- bg blobs -->
+  <div class="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-10" style="background:radial-gradient(circle,#f97316,transparent);filter:blur(80px)"></div>
+  <div class="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full opacity-8" style="background:radial-gradient(circle,#fbbf24,transparent);filter:blur(80px)"></div>
+
+  <div class="pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs text-orange-300 mb-8 fade-up" style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3)">
+    🐾 Новинка 2025 · Без консервантов
+  </div>
+
+  <div class="float text-9xl mb-6 fade-up delay-1">🐕</div>
+
+  <h1 class="hero-font text-4xl md:text-6xl font-black leading-tight mb-4 fade-up delay-2">
+    Корм, который<br><span class="shimmer-text">хочется съесть самому</span>
+  </h1>
+
+  <p class="text-gray-400 text-lg max-w-xl mb-10 fade-up delay-3">
+    ПАУРС — сухой корм из настоящего мяса. Никакой кукурузы, никаких красителей. Только то, что твой пёс заслуживает.
+  </p>
+
+  <div class="flex flex-col sm:flex-row gap-4 fade-up delay-4">
+    <button class="btn-glow px-8 py-4 rounded-full bg-orange-500 text-black font-bold text-base transition-all">
+      Попробовать за 990 ₽ →
+    </button>
+    <button class="px-8 py-4 rounded-full border border-gray-700 text-gray-300 font-medium hover:border-gray-500 transition">
+      Смотреть состав
+    </button>
+  </div>
+
+  <div class="flex items-center gap-6 mt-12 text-sm text-gray-500 fade-up delay-4">
+    <div class="flex flex-col items-center"><span class="text-white font-bold text-xl">12 400+</span>собак</div>
+    <div class="w-px h-8 bg-gray-800"></div>
+    <div class="flex flex-col items-center"><span class="text-white font-bold text-xl">4.9★</span>рейтинг</div>
+    <div class="w-px h-8 bg-gray-800"></div>
+    <div class="flex flex-col items-center"><span class="text-white font-bold text-xl">94%</span>повторяют</div>
+  </div>
+</section>
+
+<!-- INGREDIENTS -->
+<section class="py-24 px-6 max-w-5xl mx-auto">
+  <div class="text-center mb-16">
+    <p class="text-orange-500 text-sm font-medium tracking-widest uppercase mb-2">Состав</p>
+    <h2 class="hero-font text-3xl md:text-4xl font-black">Только настоящее</h2>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="card-glow rounded-2xl p-6 text-center transition" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
+      <div class="text-4xl mb-3">🥩</div>
+      <div class="font-semibold text-sm">Говядина</div>
+      <div class="text-orange-400 text-xs mt-1">42% белка</div>
+    </div>
+    <div class="card-glow rounded-2xl p-6 text-center transition" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
+      <div class="text-4xl mb-3">🐟</div>
+      <div class="font-semibold text-sm">Лосось</div>
+      <div class="text-orange-400 text-xs mt-1">Омега-3</div>
+    </div>
+    <div class="card-glow rounded-2xl p-6 text-center transition" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
+      <div class="text-4xl mb-3">🥕</div>
+      <div class="font-semibold text-sm">Морковь</div>
+      <div class="text-orange-400 text-xs mt-1">Витамин A</div>
+    </div>
+    <div class="card-glow rounded-2xl p-6 text-center transition" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
+      <div class="text-4xl mb-3">🫐</div>
+      <div class="font-semibold text-sm">Черника</div>
+      <div class="text-orange-400 text-xs mt-1">Антиоксиданты</div>
+    </div>
+  </div>
+
+  <div class="mt-6 rounded-2xl p-6 flex items-center gap-4" style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2)">
+    <div class="text-3xl">🚫</div>
+    <div>
+      <div class="font-semibold mb-1">Без этого никогда</div>
+      <div class="text-gray-400 text-sm">Кукуруза · Соя · Искусственные красители · Консерванты · Субпродукты низкого качества</div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section class="py-24 px-6" style="background:rgba(255,255,255,0.02);border-top:1px solid rgba(255,255,255,0.06)">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-16">
+      <p class="text-orange-500 text-sm font-medium tracking-widest uppercase mb-2">Линейка</p>
+      <h2 class="hero-font text-3xl md:text-4xl font-black">Для любого пса</h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6">
+      <!-- product 1 -->
+      <div class="card-glow rounded-3xl overflow-hidden transition" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
+        <div class="h-48 flex items-center justify-center text-7xl" style="background:linear-gradient(135deg,rgba(249,115,22,0.15),rgba(251,191,36,0.1))">🐕</div>
+        <div class="p-6">
+          <div class="text-xs text-orange-400 font-medium mb-1 uppercase tracking-widest">Щенки</div>
+          <h3 class="font-bold text-xl mb-2 hero-font">ПАУРС Junior</h3>
+          <p class="text-gray-400 text-sm mb-4">Мягкий состав для растущего организма. Кальций + DHA для мозга.</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xl font-bold">990 <span class="text-sm text-gray-500">₽/кг</span></span>
+            <button class="px-4 py-2 rounded-full bg-orange-500 text-black text-sm font-bold hover:bg-orange-400 transition">Купить</button>
+          </div>
+        </div>
+      </div>
+      <!-- product 2 -->
+      <div class="card-glow rounded-3xl overflow-hidden relative transition" style="background:rgba(249,115,22,0.08);border:2px solid rgba(249,115,22,0.5)">
+        <div class="absolute top-4 right-4 text-xs px-3 py-1 rounded-full bg-orange-500 text-black font-bold">ХИТ</div>
+        <div class="h-48 flex items-center justify-center text-7xl" style="background:linear-gradient(135deg,rgba(249,115,22,0.25),rgba(251,191,36,0.15))">🦮</div>
+        <div class="p-6">
+          <div class="text-xs text-orange-400 font-medium mb-1 uppercase tracking-widest">Взрослые</div>
+          <h3 class="font-bold text-xl mb-2 hero-font">ПАУРС Max</h3>
+          <p class="text-gray-400 text-sm mb-4">Максимум белка. Говядина + лосось. Для активных собак всех пород.</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xl font-bold shimmer-text">1 290 <span class="text-sm">₽/кг</span></span>
+            <button class="px-4 py-2 rounded-full bg-orange-500 text-black text-sm font-bold hover:bg-orange-400 transition">Купить</button>
+          </div>
+        </div>
+      </div>
+      <!-- product 3 -->
+      <div class="card-glow rounded-3xl overflow-hidden transition" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
+        <div class="h-48 flex items-center justify-center text-7xl" style="background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(249,115,22,0.1))">🐩</div>
+        <div class="p-6">
+          <div class="text-xs text-orange-400 font-medium mb-1 uppercase tracking-widest">Пожилые</div>
+          <h3 class="font-bold text-xl mb-2 hero-font">ПАУРС Senior</h3>
+          <p class="text-gray-400 text-sm mb-4">Суставы, шерсть, пищеварение. Глюкозамин + пробиотики.</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xl font-bold">1 190 <span class="text-sm text-gray-500">₽/кг</span></span>
+            <button class="px-4 py-2 rounded-full bg-orange-500 text-black text-sm font-bold hover:bg-orange-400 transition">Купить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="py-24 px-6 max-w-5xl mx-auto">
+  <div class="text-center mb-16">
+    <p class="text-orange-500 text-sm font-medium tracking-widest uppercase mb-2">Отзывы</p>
+    <h2 class="hero-font text-3xl font-black">Псы голосуют лапами</h2>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-6">
+    <div class="rounded-2xl p-6" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
+      <div class="flex mb-3"><span class="star">★★★★★</span></div>
+      <p class="text-gray-300 text-sm mb-4">"Лабрадор перестал ковырять еду носом. Миску вылизывает за 30 секунд. До этого пробовали 5 брендов."</p>
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-xs font-bold">А</div>
+        <div><div class="text-sm font-medium">Анна К.</div><div class="text-xs text-gray-500">Москва · Лабрадор, 3 года</div></div>
+      </div>
+    </div>
+    <div class="rounded-2xl p-6" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
+      <div class="flex mb-3"><span class="star">★★★★★</span></div>
+      <p class="text-gray-300 text-sm mb-4">"Шерсть стала блестеть через месяц. Ветеринар сама спросила, на чём сидит. Теперь вся клиника советует."</p>
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-xs font-bold">М</div>
+        <div><div class="text-sm font-medium">Михаил Р.</div><div class="text-xs text-gray-500">СПб · Хаски, 5 лет</div></div>
+      </div>
+    </div>
+    <div class="rounded-2xl p-6" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
+      <div class="flex mb-3"><span class="star">★★★★★</span></div>
+      <p class="text-gray-300 text-sm mb-4">"Корги 12 лет, суставы болели. Senior взяли по совету. Через 6 недель снова прыгает на диван как щенок."</p>
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-xs font-bold">О</div>
+        <div><div class="text-sm font-medium">Ольга В.</div><div class="text-xs text-gray-500">Казань · Корги, 12 лет</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="py-24 px-6">
+  <div class="max-w-2xl mx-auto text-center rounded-3xl p-12" style="background:linear-gradient(135deg,rgba(249,115,22,0.15),rgba(251,191,36,0.08));border:1px solid rgba(249,115,22,0.3)">
+    <div class="text-6xl mb-4">🐾</div>
+    <h2 class="hero-font text-3xl font-black mb-4">Первый заказ — 15% скидка</h2>
+    <p class="text-gray-400 mb-8">Оставь email и получи промокод на первый мешок</p>
+    <div class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+      <input type="email" placeholder="email@example.com" class="flex-1 px-5 py-3 rounded-full text-white text-sm" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15)">
+      <button class="btn-glow px-6 py-3 rounded-full bg-orange-500 text-black font-bold text-sm transition-all whitespace-nowrap">Получить скидку</button>
+    </div>
+    <p class="text-gray-600 text-xs mt-4">Без спама. Только важное.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="py-10 px-6 text-center text-gray-600 text-sm" style="border-top:1px solid rgba(255,255,255,0.06)">
+  <div class="hero-font text-white font-black text-lg mb-2">ПАУРС<span class="text-orange-500">.</span></div>
+  <p>© 2025 ПАУРС · Корм для настоящих псов</p>
+</footer>
+
+</body>
+</html>
