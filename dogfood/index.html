@@ -3,174 +3,474 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ПАУРС — корм для собак</title>
+<title>ТАЁЖНЫЙ — натуральный корм для собак</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fff; }
-  .hero-font { font-family: 'Unbounded', sans-serif; }
-  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-18px)} }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
-  .float { animation: float 4s ease-in-out infinite; }
-  .fade-up { animation: fadeUp 0.8s ease forwards; opacity: 0; }
-  .delay-1 { animation-delay: 0.1s; }
-  .delay-2 { animation-delay: 0.25s; }
-  .delay-3 { animation-delay: 0.4s; }
-  .delay-4 { animation-delay: 0.55s; }
-  .shimmer-text {
-    background: linear-gradient(90deg, #f97316, #fbbf24, #f97316);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: shimmer 3s linear infinite;
-  }
-  .card-glow:hover { box-shadow: 0 0 40px rgba(249,115,22,0.3); transform: translateY(-4px); transition: all 0.3s; }
-  .btn-glow { box-shadow: 0 0 30px rgba(249,115,22,0.5); }
-  .btn-glow:hover { box-shadow: 0 0 50px rgba(249,115,22,0.8); transform: scale(1.04); }
-  .grain { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); }
-  .pill { backdrop-filter: blur(12px); }
-  input:focus { outline: none; }
-  .star { color: #fbbf24; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: #0d1008; color: #f0ede6; overflow-x: hidden; }
+.serif { font-family: 'Playfair Display', serif; }
+
+/* Animations */
+@keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+@keyframes float { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-12px)} }
+@keyframes countUp { from{opacity:0} to{opacity:1} }
+@keyframes drawLine { from{width:0} to{width:100%} }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+@keyframes scaleIn { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.fade-up { animation: fadeUp 0.9s ease forwards; opacity: 0; }
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.3s; }
+.delay-3 { animation-delay: 0.5s; }
+.delay-4 { animation-delay: 0.7s; }
+.delay-5 { animation-delay: 0.9s; }
+.float { animation: float 5s ease-in-out infinite; }
+
+/* Hero */
+.hero-bg {
+  background-image: linear-gradient(to bottom, rgba(13,16,8,0.2) 0%, rgba(13,16,8,0.6) 60%, rgba(13,16,8,1) 100%), url('hero.png');
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+}
+
+/* Nav */
+nav { position: fixed; top:0; left:0; right:0; z-index:50; padding: 20px 32px; display:flex; justify-content:space-between; align-items:center; }
+.nav-blur { background: rgba(13,16,8,0); backdrop-filter: blur(0px); transition: all 0.4s; border-bottom: 1px solid transparent; }
+.nav-scrolled { background: rgba(13,16,8,0.9) !important; backdrop-filter: blur(20px) !important; border-bottom: 1px solid rgba(255,255,255,0.06) !important; }
+
+/* Progress bars */
+.bar-track { background: rgba(255,255,255,0.1); border-radius: 99px; height: 8px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 99px; transition: width 1.5s cubic-bezier(0.4,0,0.2,1); }
+
+/* Infographic circles */
+.circle-stat { position: relative; }
+.circle-stat svg { transform: rotate(-90deg); }
+.circle-track { stroke: rgba(255,255,255,0.08); }
+.circle-fill { stroke-dasharray: 283; transition: stroke-dashoffset 2s cubic-bezier(0.4,0,0.2,1); }
+
+/* Cards */
+.nature-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; transition: all 0.3s; }
+.nature-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(139,115,56,0.4); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+
+/* Green accent */
+.accent { color: #8bb04a; }
+.accent-bg { background: #8bb04a; }
+.accent-border { border-color: #8bb04a; }
+
+/* Divider line */
+.divider { width: 60px; height: 2px; background: #8bb04a; margin: 16px auto; }
+
+/* Scroll indicator */
+.scroll-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.4); }
+.scroll-dot.active { background: #8bb04a; }
+
+/* Comparison table */
+.cmp-good { color: #8bb04a; }
+.cmp-bad { color: #ef4444; opacity: 0.7; }
+.cmp-row { padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:12px; }
+
+/* Ingredient tag */
+.ing-tag { display:inline-flex; align-items:center; gap:6px; padding: 6px 14px; border-radius: 99px; background: rgba(139,176,74,0.12); border: 1px solid rgba(139,176,74,0.3); font-size: 13px; }
+
+/* Parallax text */
+.big-text { font-size: clamp(48px, 10vw, 120px); font-weight: 900; line-height: 1; opacity: 0.04; pointer-events: none; white-space: nowrap; }
+
+/* Mountain silhouette */
+.mountain-svg { position: absolute; bottom: 0; left: 0; right: 0; }
+
+/* Btn */
+.btn-primary { background: #8bb04a; color: #0d1008; padding: 16px 36px; border-radius: 99px; font-weight: 700; font-size: 15px; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer; }
+.btn-primary:hover { background: #9dc455; transform: scale(1.03); box-shadow: 0 0 40px rgba(139,176,74,0.4); }
+.btn-outline { padding: 16px 36px; border-radius: 99px; font-weight: 600; font-size: 15px; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; border: 1.5px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); background: transparent; cursor: pointer; }
+.btn-outline:hover { border-color: #8bb04a; color: #8bb04a; }
+
+/* Timeline */
+.timeline-dot { width: 12px; height: 12px; border-radius: 50%; background: #8bb04a; flex-shrink: 0; }
+.timeline-line { width: 2px; background: rgba(139,176,74,0.3); flex-grow: 1; margin: 4px auto; }
 </style>
 </head>
-<body class="grain">
+<body>
 
 <!-- NAV -->
-<nav class="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex justify-between items-center" style="background:rgba(10,10,10,0.8);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.06)">
-  <div class="hero-font text-lg font-black tracking-widest">ПАУРС<span class="text-orange-500">.</span></div>
-  <div class="hidden md:flex gap-8 text-sm text-gray-400">
-    <a href="#" class="hover:text-white transition">Состав</a>
-    <a href="#" class="hover:text-white transition">Линейка</a>
-    <a href="#" class="hover:text-white transition">Отзывы</a>
+<nav class="nav-blur" id="nav">
+  <div class="serif text-xl font-bold tracking-wide">ТАЁЖНЫЙ<span class="accent">.</span></div>
+  <div class="hidden md:flex gap-8 text-sm" style="color:rgba(255,255,255,0.6)">
+    <a href="#sostav" class="hover:text-white transition">Состав</a>
+    <a href="#infografika" class="hover:text-white transition">О корме</a>
+    <a href="#produkty" class="hover:text-white transition">Линейка</a>
+    <a href="#otzyvy" class="hover:text-white transition">Отзывы</a>
   </div>
-  <button class="text-sm px-4 py-2 rounded-full border border-orange-500 text-orange-400 hover:bg-orange-500 hover:text-black transition font-medium">Купить</button>
+  <button class="btn-primary" style="padding:10px 24px;font-size:13px">Купить</button>
 </nav>
 
 <!-- HERO -->
-<section class="min-h-screen flex flex-col items-center justify-center text-center px-6 pt-20 relative overflow-hidden">
-  <!-- bg blobs -->
-  <div class="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-10" style="background:radial-gradient(circle,#f97316,transparent);filter:blur(80px)"></div>
-  <div class="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full opacity-8" style="background:radial-gradient(circle,#fbbf24,transparent);filter:blur(80px)"></div>
+<section class="hero-bg flex flex-col items-center justify-center text-center px-6 relative">
+  <div class="pt-32 pb-40 max-w-4xl">
+    <div class="fade-up inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs mb-8" style="background:rgba(139,176,74,0.15);border:1px solid rgba(139,176,74,0.35);color:#8bb04a;letter-spacing:2px;text-transform:uppercase">
+      🏔 Сделано в России · Из горных регионов
+    </div>
 
-  <div class="pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs text-orange-300 mb-8 fade-up" style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3)">
-    🐾 Новинка 2025 · Без консервантов
+    <h1 class="serif fade-up delay-1" style="font-size:clamp(42px,7vw,90px);line-height:1.05;margin-bottom:24px">
+      Природа в каждой<br><em style="color:#8bb04a">грануле</em>
+    </h1>
+
+    <p class="fade-up delay-2 text-lg mb-10 max-w-xl mx-auto" style="color:rgba(255,255,255,0.65);line-height:1.7">
+      ТАЁЖНЫЙ создан из дичи, речной рыбы и горных трав. Никаких добавок. Только то, что пёс нашёл бы сам в лесу.
+    </p>
+
+    <div class="fade-up delay-3 flex flex-col sm:flex-row gap-4 justify-center">
+      <button class="btn-primary">Попробовать → <span style="font-size:18px">🐺</span></button>
+      <button class="btn-outline">Смотреть состав</button>
+    </div>
+
+    <!-- mini stats -->
+    <div class="fade-up delay-4 flex justify-center gap-8 mt-16 pt-8" style="border-top:1px solid rgba(255,255,255,0.1)">
+      <div><div class="serif text-3xl font-bold accent">0</div><div class="text-xs mt-1" style="color:rgba(255,255,255,0.5)">красителей</div></div>
+      <div style="width:1px;background:rgba(255,255,255,0.1)"></div>
+      <div><div class="serif text-3xl font-bold accent">78%</div><div class="text-xs mt-1" style="color:rgba(255,255,255,0.5)">мясо в составе</div></div>
+      <div style="width:1px;background:rgba(255,255,255,0.1)"></div>
+      <div><div class="serif text-3xl font-bold accent">3</div><div class="text-xs mt-1" style="color:rgba(255,255,255,0.5)">вида дичи</div></div>
+      <div style="width:1px;background:rgba(255,255,255,0.1)"></div>
+      <div><div class="serif text-3xl font-bold accent">4.9★</div><div class="text-xs mt-1" style="color:rgba(255,255,255,0.5)">рейтинг</div></div>
+    </div>
   </div>
 
-  <div class="float text-9xl mb-6 fade-up delay-1">🐕</div>
-
-  <h1 class="hero-font text-4xl md:text-6xl font-black leading-tight mb-4 fade-up delay-2">
-    Корм, который<br><span class="shimmer-text">хочется съесть самому</span>
-  </h1>
-
-  <p class="text-gray-400 text-lg max-w-xl mb-10 fade-up delay-3">
-    ПАУРС — сухой корм из настоящего мяса. Никакой кукурузы, никаких красителей. Только то, что твой пёс заслуживает.
-  </p>
-
-  <div class="flex flex-col sm:flex-row gap-4 fade-up delay-4">
-    <button class="btn-glow px-8 py-4 rounded-full bg-orange-500 text-black font-bold text-base transition-all">
-      Попробовать за 990 ₽ →
-    </button>
-    <button class="px-8 py-4 rounded-full border border-gray-700 text-gray-300 font-medium hover:border-gray-500 transition">
-      Смотреть состав
-    </button>
-  </div>
-
-  <div class="flex items-center gap-6 mt-12 text-sm text-gray-500 fade-up delay-4">
-    <div class="flex flex-col items-center"><span class="text-white font-bold text-xl">12 400+</span>собак</div>
-    <div class="w-px h-8 bg-gray-800"></div>
-    <div class="flex flex-col items-center"><span class="text-white font-bold text-xl">4.9★</span>рейтинг</div>
-    <div class="w-px h-8 bg-gray-800"></div>
-    <div class="flex flex-col items-center"><span class="text-white font-bold text-xl">94%</span>повторяют</div>
-  </div>
+  <!-- mountain silhouette -->
+  <svg class="mountain-svg" viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+    <path d="M0 120L240 40L360 80L480 20L600 70L720 10L840 60L960 30L1080 75L1200 25L1320 65L1440 35V120H0Z" fill="#0d1008"/>
+  </svg>
 </section>
 
-<!-- INGREDIENTS -->
-<section class="py-24 px-6 max-w-5xl mx-auto">
-  <div class="text-center mb-16">
-    <p class="text-orange-500 text-sm font-medium tracking-widest uppercase mb-2">Состав</p>
-    <h2 class="hero-font text-3xl md:text-4xl font-black">Только настоящее</h2>
-  </div>
-
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <div class="card-glow rounded-2xl p-6 text-center transition" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
-      <div class="text-4xl mb-3">🥩</div>
-      <div class="font-semibold text-sm">Говядина</div>
-      <div class="text-orange-400 text-xs mt-1">42% белка</div>
-    </div>
-    <div class="card-glow rounded-2xl p-6 text-center transition" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
-      <div class="text-4xl mb-3">🐟</div>
-      <div class="font-semibold text-sm">Лосось</div>
-      <div class="text-orange-400 text-xs mt-1">Омега-3</div>
-    </div>
-    <div class="card-glow rounded-2xl p-6 text-center transition" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
-      <div class="text-4xl mb-3">🥕</div>
-      <div class="font-semibold text-sm">Морковь</div>
-      <div class="text-orange-400 text-xs mt-1">Витамин A</div>
-    </div>
-    <div class="card-glow rounded-2xl p-6 text-center transition" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
-      <div class="text-4xl mb-3">🫐</div>
-      <div class="font-semibold text-sm">Черника</div>
-      <div class="text-orange-400 text-xs mt-1">Антиоксиданты</div>
-    </div>
-  </div>
-
-  <div class="mt-6 rounded-2xl p-6 flex items-center gap-4" style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2)">
-    <div class="text-3xl">🚫</div>
+<!-- ORIGIN SECTION -->
+<section class="py-24 px-6 max-w-6xl mx-auto" id="sostav">
+  <div class="grid md:grid-cols-2 gap-16 items-center">
     <div>
-      <div class="font-semibold mb-1">Без этого никогда</div>
-      <div class="text-gray-400 text-sm">Кукуруза · Соя · Искусственные красители · Консерванты · Субпродукты низкого качества</div>
+      <p class="accent text-sm font-medium tracking-widest uppercase mb-3">Откуда мы берём</p>
+      <h2 class="serif text-4xl font-bold mb-6">Горы дают<br>лучшее мясо</h2>
+      <div class="divider" style="margin:0 0 24px 0"></div>
+      <p style="color:rgba(255,255,255,0.6);line-height:1.8;margin-bottom:24px">
+        Мы работаем с охотниками и фермерами Алтая, Карелии и Кавказа. Животные живут на воле, едят натуральный корм. Это даёт мясо с максимальной питательной ценностью.
+      </p>
+      <p style="color:rgba(255,255,255,0.6);line-height:1.8;margin-bottom:32px">
+        Рыбу поставляют с горных рек Сибири — лосось, хариус, сиг. Богатые омега-3 жирными кислотами, которых нет в фермерской рыбе.
+      </p>
+      <div class="flex flex-wrap gap-2">
+        <span class="ing-tag">🏔 Алтай</span>
+        <span class="ing-tag">🌲 Карелия</span>
+        <span class="ing-tag">⛰ Кавказ</span>
+        <span class="ing-tag">🐟 Сибирские реки</span>
+      </div>
+    </div>
+    <div class="relative">
+      <img src="nature.png" alt="Природа" class="rounded-2xl w-full" style="filter:brightness(0.85);object-fit:cover;height:420px">
+      <div class="absolute inset-0 rounded-2xl" style="background:linear-gradient(to top, rgba(13,16,8,0.6), transparent)"></div>
+      <div class="absolute bottom-6 left-6 right-6">
+        <div class="rounded-xl p-4" style="background:rgba(13,16,8,0.7);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1)">
+          <div class="text-sm font-medium mb-1">🦌 Дикие животные пасутся на воле</div>
+          <div class="text-xs" style="color:rgba(255,255,255,0.5)">Горные луга Алтая · 2200 м над уровнем моря</div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- PRODUCTS -->
-<section class="py-24 px-6" style="background:rgba(255,255,255,0.02);border-top:1px solid rgba(255,255,255,0.06)">
-  <div class="max-w-5xl mx-auto">
+<!-- INFOGRAPHICS -->
+<section id="infografika" class="py-24 px-6" style="background:rgba(0,0,0,0.3)">
+  <div class="max-w-6xl mx-auto">
     <div class="text-center mb-16">
-      <p class="text-orange-500 text-sm font-medium tracking-widest uppercase mb-2">Линейка</p>
-      <h2 class="hero-font text-3xl md:text-4xl font-black">Для любого пса</h2>
+      <p class="accent text-sm font-medium tracking-widest uppercase mb-3">Состав</p>
+      <h2 class="serif text-4xl font-bold">Что внутри каждого мешка</h2>
+      <div class="divider"></div>
     </div>
 
-    <div class="grid md:grid-cols-3 gap-6">
-      <!-- product 1 -->
-      <div class="card-glow rounded-3xl overflow-hidden transition" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
-        <div class="h-48 flex items-center justify-center text-7xl" style="background:linear-gradient(135deg,rgba(249,115,22,0.15),rgba(251,191,36,0.1))">🐕</div>
-        <div class="p-6">
-          <div class="text-xs text-orange-400 font-medium mb-1 uppercase tracking-widest">Щенки</div>
-          <h3 class="font-bold text-xl mb-2 hero-font">ПАУРС Junior</h3>
-          <p class="text-gray-400 text-sm mb-4">Мягкий состав для растущего организма. Кальций + DHA для мозга.</p>
-          <div class="flex items-center justify-between">
-            <span class="text-xl font-bold">990 <span class="text-sm text-gray-500">₽/кг</span></span>
-            <button class="px-4 py-2 rounded-full bg-orange-500 text-black text-sm font-bold hover:bg-orange-400 transition">Купить</button>
+    <!-- Composition donut charts -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20">
+      <!-- Protein -->
+      <div class="text-center">
+        <div class="relative inline-block mb-4">
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#8bb04a" stroke-width="8"
+              stroke-dasharray="283" stroke-dashoffset="62" stroke-linecap="round"
+              style="transform:rotate(-90deg);transform-origin:center"/>
+          </svg>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="serif text-xl font-bold">78%</div>
+          </div>
+        </div>
+        <div class="font-semibold">Белок</div>
+        <div class="text-xs mt-1 accent">мясо и рыба</div>
+      </div>
+      <!-- Fats -->
+      <div class="text-center">
+        <div class="relative inline-block mb-4">
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#d4a843" stroke-width="8"
+              stroke-dasharray="283" stroke-dashoffset="198" stroke-linecap="round"
+              style="transform:rotate(-90deg);transform-origin:center"/>
+          </svg>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="serif text-xl font-bold">14%</div>
+          </div>
+        </div>
+        <div class="font-semibold">Жиры</div>
+        <div class="text-xs mt-1" style="color:#d4a843">Омега-3, -6</div>
+      </div>
+      <!-- Carbs -->
+      <div class="text-center">
+        <div class="relative inline-block mb-4">
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#7aa3c4" stroke-width="8"
+              stroke-dasharray="283" stroke-dashoffset="226" stroke-linecap="round"
+              style="transform:rotate(-90deg);transform-origin:center"/>
+          </svg>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="serif text-xl font-bold">6%</div>
+          </div>
+        </div>
+        <div class="font-semibold">Клетчатка</div>
+        <div class="text-xs mt-1" style="color:#7aa3c4">горные травы</div>
+      </div>
+      <!-- Vitamins -->
+      <div class="text-center">
+        <div class="relative inline-block mb-4">
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#b47ab4" stroke-width="8"
+              stroke-dasharray="283" stroke-dashoffset="255" stroke-linecap="round"
+              style="transform:rotate(-90deg);transform-origin:center"/>
+          </svg>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="serif text-xl font-bold">2%</div>
+          </div>
+        </div>
+        <div class="font-semibold">Витамины</div>
+        <div class="text-xs mt-1" style="color:#b47ab4">A, D, E, B12</div>
+      </div>
+    </div>
+
+    <!-- Ingredient breakdown bars -->
+    <div class="grid md:grid-cols-2 gap-12">
+      <div>
+        <h3 class="serif text-2xl font-bold mb-8">Источники белка</h3>
+        <div class="space-y-5">
+          <div>
+            <div class="flex justify-between text-sm mb-2">
+              <span>🦌 Оленина (Алтай)</span><span class="accent font-semibold">38%</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill accent-bg" style="width:38%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-2">
+              <span>🐟 Лосось горных рек</span><span class="accent font-semibold">24%</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill accent-bg" style="width:24%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-2">
+              <span>🐗 Кабанятина</span><span class="accent font-semibold">16%</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill accent-bg" style="width:16%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-2">
+              <span>🐔 Мясо куропатки</span><span class="accent font-semibold">12%</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill accent-bg" style="width:12%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-2">
+              <span>🥚 Яйцо перепела</span><span class="accent font-semibold">8%</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill accent-bg" style="width:8%"></div></div>
           </div>
         </div>
       </div>
-      <!-- product 2 -->
-      <div class="card-glow rounded-3xl overflow-hidden relative transition" style="background:rgba(249,115,22,0.08);border:2px solid rgba(249,115,22,0.5)">
-        <div class="absolute top-4 right-4 text-xs px-3 py-1 rounded-full bg-orange-500 text-black font-bold">ХИТ</div>
-        <div class="h-48 flex items-center justify-center text-7xl" style="background:linear-gradient(135deg,rgba(249,115,22,0.25),rgba(251,191,36,0.15))">🦮</div>
-        <div class="p-6">
-          <div class="text-xs text-orange-400 font-medium mb-1 uppercase tracking-widest">Взрослые</div>
-          <h3 class="font-bold text-xl mb-2 hero-font">ПАУРС Max</h3>
-          <p class="text-gray-400 text-sm mb-4">Максимум белка. Говядина + лосось. Для активных собак всех пород.</p>
-          <div class="flex items-center justify-between">
-            <span class="text-xl font-bold shimmer-text">1 290 <span class="text-sm">₽/кг</span></span>
-            <button class="px-4 py-2 rounded-full bg-orange-500 text-black text-sm font-bold hover:bg-orange-400 transition">Купить</button>
+
+      <!-- VS comparison -->
+      <div>
+        <h3 class="serif text-2xl font-bold mb-8">ТАЁЖНЫЙ vs обычный корм</h3>
+        <div>
+          <div class="flex gap-4 text-xs mb-3" style="color:rgba(255,255,255,0.4);padding:0 0 8px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
+            <div style="flex:1">Показатель</div>
+            <div style="width:70px;text-align:center;color:#8bb04a">ТАЁЖНЫЙ</div>
+            <div style="width:70px;text-align:center;color:rgba(255,255,255,0.3)">Масс-маркет</div>
+          </div>
+          <div class="cmp-row">
+            <div style="flex:1;font-size:13px">Содержание мяса</div>
+            <div style="width:70px;text-align:center;font-size:13px" class="cmp-good font-semibold">78%</div>
+            <div style="width:70px;text-align:center;font-size:13px" class="cmp-bad">18–25%</div>
+          </div>
+          <div class="cmp-row">
+            <div style="flex:1;font-size:13px">Искусственные красители</div>
+            <div style="width:70px;text-align:center;font-size:18px" class="cmp-good">✓</div>
+            <div style="width:70px;text-align:center;font-size:18px" class="cmp-bad">✗</div>
+          </div>
+          <div class="cmp-row">
+            <div style="flex:1;font-size:13px">Кукуруза / Соя</div>
+            <div style="width:70px;text-align:center;font-size:18px" class="cmp-good">✓</div>
+            <div style="width:70px;text-align:center;font-size:18px" class="cmp-bad">✗</div>
+          </div>
+          <div class="cmp-row">
+            <div style="flex:1;font-size:13px">Консерванты</div>
+            <div style="width:70px;text-align:center;font-size:18px" class="cmp-good">✓</div>
+            <div style="width:70px;text-align:center;font-size:18px" class="cmp-bad">✗</div>
+          </div>
+          <div class="cmp-row">
+            <div style="flex:1;font-size:13px">Дикое мясо</div>
+            <div style="width:70px;text-align:center;font-size:18px" class="cmp-good">✓</div>
+            <div style="width:70px;text-align:center;font-size:18px" class="cmp-bad">✗</div>
+          </div>
+          <div class="cmp-row">
+            <div style="flex:1;font-size:13px">Горные травы</div>
+            <div style="width:70px;text-align:center;font-size:18px" class="cmp-good">✓</div>
+            <div style="width:70px;text-align:center;font-size:18px" class="cmp-bad">✗</div>
           </div>
         </div>
       </div>
-      <!-- product 3 -->
-      <div class="card-glow rounded-3xl overflow-hidden transition" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
-        <div class="h-48 flex items-center justify-center text-7xl" style="background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(249,115,22,0.1))">🐩</div>
-        <div class="p-6">
-          <div class="text-xs text-orange-400 font-medium mb-1 uppercase tracking-widest">Пожилые</div>
-          <h3 class="font-bold text-xl mb-2 hero-font">ПАУРС Senior</h3>
-          <p class="text-gray-400 text-sm mb-4">Суставы, шерсть, пищеварение. Глюкозамин + пробиотики.</p>
-          <div class="flex items-center justify-between">
-            <span class="text-xl font-bold">1 190 <span class="text-sm text-gray-500">₽/кг</span></span>
-            <button class="px-4 py-2 rounded-full bg-orange-500 text-black text-sm font-bold hover:bg-orange-400 transition">Купить</button>
-          </div>
+    </div>
+
+    <!-- Results infographic -->
+    <div class="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="nature-card p-6 text-center">
+        <div class="text-4xl mb-3">💪</div>
+        <div class="serif text-3xl font-bold accent mb-1">+34%</div>
+        <div class="text-sm" style="color:rgba(255,255,255,0.6)">мышечная масса<br>через 3 месяца</div>
+      </div>
+      <div class="nature-card p-6 text-center">
+        <div class="text-4xl mb-3">✨</div>
+        <div class="serif text-3xl font-bold accent mb-1">92%</div>
+        <div class="text-sm" style="color:rgba(255,255,255,0.6)">хозяев отметили<br>блеск шерсти</div>
+      </div>
+      <div class="nature-card p-6 text-center">
+        <div class="text-4xl mb-3">🦴</div>
+        <div class="serif text-3xl font-bold accent mb-1">-60%</div>
+        <div class="text-sm" style="color:rgba(255,255,255,0.6)">проблем с суставами<br>у пожилых собак</div>
+      </div>
+      <div class="nature-card p-6 text-center">
+        <div class="text-4xl mb-3">🫁</div>
+        <div class="serif text-3xl font-bold accent mb-1">87%</div>
+        <div class="text-sm" style="color:rgba(255,255,255,0.6)">лучше переносят<br>физические нагрузки</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCT LINE -->
+<section id="produkty" class="py-24 px-6 max-w-6xl mx-auto">
+  <div class="text-center mb-16">
+    <p class="accent text-sm font-medium tracking-widest uppercase mb-3">Линейка</p>
+    <h2 class="serif text-4xl font-bold">Три формулы природы</h2>
+    <div class="divider"></div>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-6">
+    <div class="nature-card p-8">
+      <div class="text-5xl mb-4">🐺</div>
+      <div class="accent text-xs font-medium tracking-widest uppercase mb-2">Щенки · Junior</div>
+      <h3 class="serif text-2xl font-bold mb-3">Первый лес</h3>
+      <p style="color:rgba(255,255,255,0.55);font-size:14px;line-height:1.7;margin-bottom:20px">Мягкое мясо куропатки и форели для формирования костей и мозга. DHA для развития нервной системы.</p>
+      <div class="space-y-2 mb-6">
+        <div class="flex items-center gap-2 text-sm"><span class="accent">✓</span>Куропатка 40%</div>
+        <div class="flex items-center gap-2 text-sm"><span class="accent">✓</span>Форель горных рек</div>
+        <div class="flex items-center gap-2 text-sm"><span class="accent">✓</span>Кальций + DHA</div>
+      </div>
+      <div class="flex items-center justify-between">
+        <div><span class="serif text-2xl font-bold">1 090 ₽</span><span style="color:rgba(255,255,255,0.4);font-size:13px">/кг</span></div>
+        <button class="btn-primary" style="padding:10px 20px;font-size:13px">Купить</button>
+      </div>
+    </div>
+
+    <div class="nature-card p-8 relative" style="border-color:rgba(139,176,74,0.5);background:rgba(139,176,74,0.06)">
+      <div class="absolute top-6 right-6 text-xs px-3 py-1 rounded-full accent-bg" style="color:#0d1008;font-weight:700">ХИТ</div>
+      <div class="text-5xl mb-4">🦌</div>
+      <div class="accent text-xs font-medium tracking-widest uppercase mb-2">Взрослые · Max</div>
+      <h3 class="serif text-2xl font-bold mb-3">Таёжный охотник</h3>
+      <p style="color:rgba(255,255,255,0.55);font-size:14px;line-height:1.7;margin-bottom:20px">Оленина + кабанятина + лосось. Максимум белка для активных собак. Поддержка суставов.</p>
+      <div class="space-y-2 mb-6">
+        <div class="flex items-center gap-2 text-sm"><span class="accent">✓</span>Оленина Алтая 38%</div>
+        <div class="flex items-center gap-2 text-sm"><span class="accent">✓</span>Кабанятина 22%</div>
+        <div class="flex items-center gap-2 text-sm"><span class="accent">✓</span>Лосось горных рек</div>
+      </div>
+      <div class="flex items-center justify-between">
+        <div><span class="serif text-2xl font-bold accent">1 490 ₽</span><span style="color:rgba(255,255,255,0.4);font-size:13px">/кг</span></div>
+        <button class="btn-primary" style="padding:10px 20px;font-size:13px">Купить</button>
+      </div>
+    </div>
+
+    <div class="nature-card p-8">
+      <div class="text-5xl mb-4">🌿</div>
+      <div class="accent text-xs font-medium tracking-widest uppercase mb-2">Пожилые · Senior</div>
+      <h3 class="serif text-2xl font-bold mb-3">Мудрый волк</h3>
+      <p style="color:rgba(255,255,255,0.55);font-size:14px;line-height:1.7;margin-bottom:20px">Нежная оленина с глюкозамином и горными травами. Для суставов, пищеварения и блеска шерсти.</p>
+      <div class="space-y-2 mb-6">
+        <div class="flex items-center gap-2 text-sm"><span class="accent">✓</span>Оленина мягкой обработки</div>
+        <div class="flex items-center gap-2 text-sm"><span class="accent">✓</span>Глюкозамин + хондроитин</div>
+        <div class="flex items-center gap-2 text-sm"><span class="accent">✓</span>Горные травы Кавказа</div>
+      </div>
+      <div class="flex items-center justify-between">
+        <div><span class="serif text-2xl font-bold">1 290 ₽</span><span style="color:rgba(255,255,255,0.4);font-size:13px">/кг</span></div>
+        <button class="btn-primary" style="padding:10px 20px;font-size:13px">Купить</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- JOURNEY TIMELINE -->
+<section class="py-24 px-6" style="background:rgba(0,0,0,0.3)">
+  <div class="max-w-3xl mx-auto">
+    <div class="text-center mb-16">
+      <p class="accent text-sm font-medium tracking-widest uppercase mb-3">Путь корма</p>
+      <h2 class="serif text-4xl font-bold">От горы до миски</h2>
+      <div class="divider"></div>
+    </div>
+
+    <div class="space-y-0">
+      <div class="flex gap-6">
+        <div class="flex flex-col items-center" style="width:40px">
+          <div class="timeline-dot"></div>
+          <div class="timeline-line" style="height:80px"></div>
+        </div>
+        <div class="pb-10">
+          <div class="serif text-xl font-bold mb-2">🏔 Дикая природа</div>
+          <p style="color:rgba(255,255,255,0.55);font-size:14px;line-height:1.7">Олени, кабаны и птицы живут в горных лесах Алтая и Кавказа. Естественный рацион, чистый воздух, никакого гормонального откорма.</p>
+        </div>
+      </div>
+      <div class="flex gap-6">
+        <div class="flex flex-col items-center" style="width:40px">
+          <div class="timeline-dot"></div>
+          <div class="timeline-line" style="height:80px"></div>
+        </div>
+        <div class="pb-10">
+          <div class="serif text-xl font-bold mb-2">🔪 Охотничья заготовка</div>
+          <p style="color:rgba(255,255,255,0.55);font-size:14px;line-height:1.7">Партнёры-охотники сдают свежее мясо на наш перерабатывающий завод в течение 24 часов. Вся партия проходит ветеринарный контроль.</p>
+        </div>
+      </div>
+      <div class="flex gap-6">
+        <div class="flex flex-col items-center" style="width:40px">
+          <div class="timeline-dot"></div>
+          <div class="timeline-line" style="height:80px"></div>
+        </div>
+        <div class="pb-10">
+          <div class="serif text-xl font-bold mb-2">⚙️ Холодная сушка</div>
+          <p style="color:rgba(255,255,255,0.55);font-size:14px;line-height:1.7">Мясо высушивается при низкой температуре — сохраняются все питательные вещества, ферменты и аминокислоты. Без химических консервантов.</p>
+        </div>
+      </div>
+      <div class="flex gap-6">
+        <div class="flex flex-col items-center" style="width:40px">
+          <div class="timeline-dot"></div>
+        </div>
+        <div>
+          <div class="serif text-xl font-bold mb-2">🐕 Счастливый пёс</div>
+          <p style="color:rgba(255,255,255,0.55);font-size:14px;line-height:1.7">Корм поступает к вам за 3-5 дней. Первые результаты — блеск шерсти и уровень энергии — заметны уже через 2-3 недели.</p>
         </div>
       </div>
     </div>
@@ -178,59 +478,104 @@
 </section>
 
 <!-- REVIEWS -->
-<section class="py-24 px-6 max-w-5xl mx-auto">
+<section id="otzyvy" class="py-24 px-6 max-w-6xl mx-auto">
   <div class="text-center mb-16">
-    <p class="text-orange-500 text-sm font-medium tracking-widest uppercase mb-2">Отзывы</p>
-    <h2 class="hero-font text-3xl font-black">Псы голосуют лапами</h2>
+    <p class="accent text-sm font-medium tracking-widest uppercase mb-3">Отзывы</p>
+    <h2 class="serif text-4xl font-bold">12 400 счастливых псов</h2>
+    <div class="divider"></div>
   </div>
 
   <div class="grid md:grid-cols-3 gap-6">
-    <div class="rounded-2xl p-6" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
-      <div class="flex mb-3"><span class="star">★★★★★</span></div>
-      <p class="text-gray-300 text-sm mb-4">"Лабрадор перестал ковырять еду носом. Миску вылизывает за 30 секунд. До этого пробовали 5 брендов."</p>
+    <div class="nature-card p-7">
+      <div style="color:#d4a843;margin-bottom:12px;font-size:14px">★★★★★</div>
+      <p style="color:rgba(255,255,255,0.7);font-size:14px;line-height:1.7;margin-bottom:20px">"Хаски 4 года, переходили с Royal Canin. Первые дни нюхал недоверчиво, потом стал есть быстрее чем мы успеваем наполнить миску. Шерсть — зеркало."</p>
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-xs font-bold">А</div>
-        <div><div class="text-sm font-medium">Анна К.</div><div class="text-xs text-gray-500">Москва · Лабрадор, 3 года</div></div>
+        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold serif" style="background:rgba(139,176,74,0.2);color:#8bb04a">Д</div>
+        <div><div class="font-medium text-sm">Дмитрий Л.</div><div class="text-xs" style="color:rgba(255,255,255,0.4)">Новосибирск · Хаски Граф</div></div>
       </div>
     </div>
-    <div class="rounded-2xl p-6" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
-      <div class="flex mb-3"><span class="star">★★★★★</span></div>
-      <p class="text-gray-300 text-sm mb-4">"Шерсть стала блестеть через месяц. Ветеринар сама спросила, на чём сидит. Теперь вся клиника советует."</p>
+    <div class="nature-card p-7">
+      <div style="color:#d4a843;margin-bottom:12px;font-size:14px">★★★★★</div>
+      <p style="color:rgba(255,255,255,0.7);font-size:14px;line-height:1.7;margin-bottom:20px">"Немецкая овчарка 10 лет, проблемы с суставами. Senior взяли по рекомендации ветеринара. Через 6 недель снова носится за мячом."</p>
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-xs font-bold">М</div>
-        <div><div class="text-sm font-medium">Михаил Р.</div><div class="text-xs text-gray-500">СПб · Хаски, 5 лет</div></div>
+        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold serif" style="background:rgba(212,168,67,0.2);color:#d4a843">Е</div>
+        <div><div class="font-medium text-sm">Елена В.</div><div class="text-xs" style="color:rgba(255,255,255,0.4)">Екатеринбург · Рекс, овчарка</div></div>
       </div>
     </div>
-    <div class="rounded-2xl p-6" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
-      <div class="flex mb-3"><span class="star">★★★★★</span></div>
-      <p class="text-gray-300 text-sm mb-4">"Корги 12 лет, суставы болели. Senior взяли по совету. Через 6 недель снова прыгает на диван как щенок."</p>
+    <div class="nature-card p-7">
+      <div style="color:#d4a843;margin-bottom:12px;font-size:14px">★★★★★</div>
+      <p style="color:rgba(255,255,255,0.7);font-size:14px;line-height:1.7;margin-bottom:20px">"Беру для малинуа — рабочая собака, нужен высокий белок. ТАЁЖНЫЙ Max — идеально. Показатели на тренировках выросли. Обоим нравится."</p>
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-xs font-bold">О</div>
-        <div><div class="text-sm font-medium">Ольга В.</div><div class="text-xs text-gray-500">Казань · Корги, 12 лет</div></div>
+        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold serif" style="background:rgba(122,163,196,0.2);color:#7aa3c4">А</div>
+        <div><div class="font-medium text-sm">Алексей П.</div><div class="text-xs" style="color:rgba(255,255,255,0.4)">Краснодар · Малинуа Бэтмен</div></div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- CTA -->
-<section class="py-24 px-6">
-  <div class="max-w-2xl mx-auto text-center rounded-3xl p-12" style="background:linear-gradient(135deg,rgba(249,115,22,0.15),rgba(251,191,36,0.08));border:1px solid rgba(249,115,22,0.3)">
-    <div class="text-6xl mb-4">🐾</div>
-    <h2 class="hero-font text-3xl font-black mb-4">Первый заказ — 15% скидка</h2>
-    <p class="text-gray-400 mb-8">Оставь email и получи промокод на первый мешок</p>
-    <div class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-      <input type="email" placeholder="email@example.com" class="flex-1 px-5 py-3 rounded-full text-white text-sm" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15)">
-      <button class="btn-glow px-6 py-3 rounded-full bg-orange-500 text-black font-bold text-sm transition-all whitespace-nowrap">Получить скидку</button>
+<section class="py-24 px-6 relative overflow-hidden">
+  <div class="absolute inset-0" style="background:linear-gradient(135deg,rgba(139,176,74,0.12),rgba(139,115,56,0.08));"></div>
+  <div class="absolute inset-0" style="background-image:url('hero.png');background-size:cover;background-position:center;opacity:0.08"></div>
+  <div class="relative max-w-2xl mx-auto text-center">
+    <div class="text-6xl mb-6 float">🐾</div>
+    <h2 class="serif text-4xl font-bold mb-4">Попробуйте с пробным набором</h2>
+    <p style="color:rgba(255,255,255,0.6);margin-bottom:32px;line-height:1.7">200 г каждого вида + гид по переходу на натуральный корм. Если не понравится — вернём деньги.</p>
+    <button class="btn-primary" style="font-size:16px;padding:18px 48px">Пробный набор за 490 ₽ →</button>
+    <div class="flex justify-center gap-8 mt-10 text-sm" style="color:rgba(255,255,255,0.4)">
+      <span>✓ Доставка 3-5 дней</span>
+      <span>✓ Возврат 30 дней</span>
+      <span>✓ Ветконтроль</span>
     </div>
-    <p class="text-gray-600 text-xs mt-4">Без спама. Только важное.</p>
   </div>
 </section>
 
 <!-- FOOTER -->
-<footer class="py-10 px-6 text-center text-gray-600 text-sm" style="border-top:1px solid rgba(255,255,255,0.06)">
-  <div class="hero-font text-white font-black text-lg mb-2">ПАУРС<span class="text-orange-500">.</span></div>
-  <p>© 2025 ПАУРС · Корм для настоящих псов</p>
+<footer class="py-12 px-6" style="border-top:1px solid rgba(255,255,255,0.06)">
+  <div class="max-w-6xl mx-auto grid md:grid-cols-4 gap-8">
+    <div>
+      <div class="serif text-xl font-bold mb-3">ТАЁЖНЫЙ<span class="accent">.</span></div>
+      <p style="color:rgba(255,255,255,0.4);font-size:13px;line-height:1.7">Натуральный корм из диких животных горных регионов России</p>
+    </div>
+    <div>
+      <div class="font-semibold text-sm mb-3">Продукты</div>
+      <div class="space-y-2" style="color:rgba(255,255,255,0.4);font-size:13px">
+        <div>ТАЁЖНЫЙ Junior</div>
+        <div>ТАЁЖНЫЙ Max</div>
+        <div>ТАЁЖНЫЙ Senior</div>
+      </div>
+    </div>
+    <div>
+      <div class="font-semibold text-sm mb-3">Компания</div>
+      <div class="space-y-2" style="color:rgba(255,255,255,0.4);font-size:13px">
+        <div>О нас</div>
+        <div>Партнёры-охотники</div>
+        <div>Ветеринарный контроль</div>
+      </div>
+    </div>
+    <div>
+      <div class="font-semibold text-sm mb-3">Контакты</div>
+      <div class="space-y-2" style="color:rgba(255,255,255,0.4);font-size:13px">
+        <div>hello@taezhniy.ru</div>
+        <div>8-800-000-00-00</div>
+        <div>Telegram · Instagram</div>
+      </div>
+    </div>
+  </div>
+  <div class="max-w-6xl mx-auto mt-10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4" style="border-top:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.3);font-size:12px">
+    <div>© 2025 ТАЁЖНЫЙ · Все права защищены</div>
+    <div>Корм прошёл ветеринарную сертификацию · ГОСТ Р 55453-2013</div>
+  </div>
 </footer>
+
+<script>
+// Nav scroll effect
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('nav');
+  if (window.scrollY > 50) nav.classList.add('nav-scrolled');
+  else nav.classList.remove('nav-scrolled');
+});
+</script>
 
 </body>
 </html>
